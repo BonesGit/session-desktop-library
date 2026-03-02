@@ -18,6 +18,11 @@ const internalCallUtilsWorker = async (
   ...args: any
 ): Promise<any> => {
   if (!utilWorkerInterface) {
+    // In library mode (Node.js worker_threads) the webpack-compiled bundle uses
+    // browser globals (onmessage/postMessage). Use the node-wrapper which polyfills
+    // those globals before loading the bundle. In Electron mode use compiled.js directly.
+    const isLibraryMode = typeof process !== 'undefined' && process.type !== 'renderer';
+    const workerFile = isLibraryMode ? 'util.worker.node-wrapper.js' : 'util.worker.compiled.js';
     const utilWorkerPath = join(
       getAppRootPath(),
       'ts',
@@ -25,7 +30,7 @@ const internalCallUtilsWorker = async (
       'workers',
       'node',
       'util',
-      'util.worker.compiled.js'
+      workerFile
     );
     utilWorkerInterface = new WorkerInterface(utilWorkerPath, 3 * 60 * 1000);
   }

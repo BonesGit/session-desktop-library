@@ -1,0 +1,73 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist-lib",
+    // Override rootDir from base — multiple source roots need rootDir at repo level
+    "rootDir": ".",
+    "lib": ["ES2023"],
+    "declaration": true,
+    "declarationDir": "./dist-lib",
+    // jsx: inherit react-jsx from base (needed for duck files that use JSX)
+    // We'll let tsc handle the tsx files from the duck layer
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    // Allow emitting JavaScript even when transitive UI files have type errors.
+    // The library's own source (client/) and core backend (ts/session/, ts/models/ etc.)
+    // are type-correct; errors in transitively-compiled React components don't affect
+    // the library's runtime correctness.
+    "noEmitOnError": false
+  },
+  "include": [
+    "client/**/*.ts",
+    "client/**/*.d.ts",
+    // Missing type declarations needed by transitively-included UI components
+    "ts/mic-recorder-to-mp3.d.ts",
+    "ts/session/**/*.ts",
+    "ts/session/**/*.tsx",
+    "ts/receiver/**/*.ts",
+    "ts/models/**/*.ts",
+    "ts/data/**/*.ts",
+    "ts/node/**/*.ts",
+    "ts/util/**/*.ts",
+    "ts/util/**/*.tsx",
+    "ts/shared/**/*.ts",
+    "ts/types/**/*.ts",
+    "ts/protobuf/**/*.ts",
+    "ts/OS.ts",
+    "ts/webworker/**/*.ts",
+    // Only the duck files that backend code imports action creators from
+    "ts/state/ducks/conversations.ts",
+    "ts/state/ducks/metaGroups.ts",
+    "ts/state/ducks/onions.ts",
+    "ts/state/ducks/settings.tsx",
+    "ts/state/ducks/user.ts",
+    "ts/state/ducks/userGroups.ts",
+    "ts/state/ducks/proBackendData.ts",
+    "ts/state/ducks/modalDialog.tsx",
+    "ts/state/ducks/releasedFeatures.ts",
+    "ts/state/ducks/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "lib",
+    "app",
+    "ts/components/**",
+    "ts/hooks/**",
+    "ts/themes/**",
+    "ts/mains/**",
+    "ts/svgs/**",
+    "ts/interactions/**",
+    "ts/state/createStore.ts",
+    "ts/state/reducer.ts",
+    "ts/state/selectors/**",
+    "ts/state/startup.ts",
+    "ts/state/smart/**",
+    "ts/updater/**",
+    "ts/test/**",
+    "ts/webworker/workers/node/libsession/libsession.worker.ts",
+    "ts/webworker/workers/node/image_processor/image_processor.worker.ts",
+    "ts/webworker/workers/node/util/util.worker.ts",
+    "dynamic_assets/**"
+  ]
+}

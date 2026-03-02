@@ -308,26 +308,33 @@ function freeAllWrappers() {
   metaGroupWrappers.clear();
 }
 
-onmessage = async (e: {
-  data: [number, ConfigWrapperObjectTypesMeta | 'Blinding', string, ...any];
-}) => {
-  const [jobId, config, action, ...args] = e.data;
+// Detect whether we are running inside Node.js worker_threads (library mode)
+// or as a browser Web Worker (Electron renderer mode).
+// In worker_threads: parentPort is available; in browser Workers: self.postMessage is available.
+type PostMessageFn = (data: unknown) => void;
+// eslint-disable-next-line prefer-const
+let _post: PostMessageFn;
+
+const _handleMessage = async (
+  data: [number, ConfigWrapperObjectTypesMeta | 'Blinding', string, ...any]
+) => {
+  const [jobId, config, action, ...args] = data;
 
   try {
     if (action === 'init') {
       if (isStaticSessionWrapper(config)) {
         // nothing to do for the blinding/multiEncrypt/utilities wrapper, all functions are static
-        postMessage([jobId, null, null]);
+        _post([jobId, null, null]);
         return;
       }
       if (isUserConfigWrapperType(config)) {
         initUserWrapper(args, config);
-        postMessage([jobId, null, null]);
+        _post([jobId, null, null]);
         return;
       }
       if (isMetaGroupWrapperType(config)) {
         initGroupWrapper(args, config);
-        postMessage([jobId, null, null]);
+        _post([jobId, null, null]);
         return;
       }
       assertUnreachable(config, `Unhandled init wrapper type: ${config}`);
@@ -335,25 +342,25 @@ onmessage = async (e: {
     if (action === 'free') {
       if (isStaticSessionWrapper(config)) {
         // nothing to do for the blinding/multiEncrypt/utilities wrapper, all functions are static
-        postMessage([jobId, null, null]);
+        _post([jobId, null, null]);
         return;
       }
       if (isUserConfigWrapperType(config)) {
         freeUserWrapper(config);
-        postMessage([jobId, null, null]);
+        _post([jobId, null, null]);
         return;
       }
       if (isMetaGroupWrapperType(config)) {
         const pk = getGroupPubkeyFromWrapperType(config);
         metaGroupWrappers.delete(pk);
-        postMessage([jobId, null, null]);
+        _post([jobId, null, null]);
         return;
       }
       assertUnreachable(config, `Unhandled free wrapper type: ${config}`);
     }
     if (action === 'freeAllWrappers') {
       freeAllWrappers();
-      postMessage([jobId, null, null]);
+      _post([jobId, null, null]);
       return;
     }
 
@@ -382,12 +389,30 @@ onmessage = async (e: {
     }
     const result = await (wrapper as any)[action](...args);
 
-    postMessage([jobId, null, result]);
+    _post([jobId, null, result]);
   } catch (error) {
     const errorForDisplay = prepareErrorForPostMessage(error);
-    postMessage([jobId, errorForDisplay]);
+    _post([jobId, errorForDisplay]);
   }
 };
+
+// Wire up message passing based on runtime context
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const _workerThreads = (() => { try { return require('worker_threads'); } catch { return null; } })();
+if (_workerThreads?.parentPort) {
+  // Node.js worker_threads mode (library build)
+  const { parentPort } = _workerThreads;
+  _post = (data: unknown) => parentPort.postMessage(data);
+  parentPort.on('message', (data: [number, ConfigWrapperObjectTypesMeta | 'Blinding', string, ...any]) => {
+    void _handleMessage(data);
+  });
+} else {
+  // Browser Web Worker mode (Electron renderer)
+  _post = (data: unknown) => postMessage(data);
+  onmessage = (e: { data: [number, ConfigWrapperObjectTypesMeta | 'Blinding', string, ...any] }) => {
+    void _handleMessage(e.data);
+  };
+}
 
 function prepareErrorForPostMessage(error: unknown) {
   if (!error) {

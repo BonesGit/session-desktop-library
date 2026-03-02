@@ -3,6 +3,7 @@ node_modules
 .sass-cache
 .eslintcache
 /dist
+/dist-lib
 .DS_Store
 config/local.json
 config/local-*.json
@@ -69,3 +70,9 @@ build/copySource.js
 build/copyTests.js
 .build-cache
 test_output
+
+.claude/
+# Library integration test credentials — never commit real mnemonics
+client/tests/.env
+client/tests/test_data/
+

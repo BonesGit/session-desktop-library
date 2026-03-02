@@ -1,8 +1,12 @@
+import fs from 'fs';
 import https from 'https';
+import path from 'path';
 import tls from 'tls';
 import { setDefaultAutoSelectFamilyAttemptTimeout } from 'net';
 import _, { isEmpty, isFinite, isString } from 'lodash';
-import { ipcRenderer } from 'electron';
+// ipcRenderer is only used in the Electron renderer to load the built-in snode pool asset.
+// In library mode we read the JSON file directly from disk.
+const isElectronRenderer = typeof process !== 'undefined' && process.type === 'renderer';
 
 import pRetry from 'p-retry';
 
@@ -199,6 +203,38 @@ export function getMinTimeout() {
 }
 
 async function loadSnodePoolFromAsset(): Promise<SnodesFromSeed> {
+  if (!isElectronRenderer) {
+    // Library mode: read the bundled service-nodes-cache.json directly from disk
+    try {
+      // Walk up from this compiled file's location to find the asset
+      const assetPath = path.join(__dirname, '..', '..', '..', '..', '..', 'dynamic_assets', 'service-nodes-cache.json');
+      const content = fs.readFileSync(assetPath, 'utf8');
+      const fileCreatedMs = fs.statSync(assetPath).mtimeMs;
+      const json = JSON.parse(content);
+      const parseResult = zodSafeParse(ServiceNodesWithHeightSchema, json);
+      if (parseResult.error) {
+        throw new Error(`Failed to parse build time snode pool data: ${parseResult.error}`);
+      }
+      const nowMs = NetworkTime.now();
+      const heightAtBuildTime = parseResult.data.height;
+      const secondsSinceBuildTime = Math.floor((nowMs - fileCreatedMs) / 1000);
+      const expectedHeightDiffSinceBuildTime = Math.floor(secondsSinceBuildTime / 120);
+      const expectedCurrentHeight = heightAtBuildTime + expectedHeightDiffSinceBuildTime;
+      return parseResult.data.service_node_states.filter(snode => {
+        if (!snode.requested_unlock_height) {
+          return true;
+        }
+        return snode.requested_unlock_height > expectedCurrentHeight;
+      });
+    } catch (e) {
+      window?.log?.warn('[SeedNodeAPI] Failed to load built-in snode pool asset in library mode:', e);
+      return [];
+    }
+  }
+
+  // Electron renderer mode: use IPC to request the asset from the main process
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { ipcRenderer } = require('electron') as typeof import('electron');
   return new Promise((resolve, reject) => {
     ipcRenderer.once('load-build-time-snode-pool-complete', (_event, content, fileCreatedMs) => {
       if (
@@ -253,7 +289,7 @@ async function loadSnodePoolFromAsset(): Promise<SnodesFromSeed> {
     });
     ipcRenderer.send('load-build-time-snode-pool');
   });
-}
+} // end loadSnodePoolFromAsset
 
 /**
  * This functions choose randomly a seed node from seedNodes and try to get the snodes from it, or throws.

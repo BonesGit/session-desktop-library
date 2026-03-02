@@ -1,6 +1,21 @@
 /* eslint-disable no-restricted-syntax */
 import { type Database, type StatementParameters } from '@signalapp/sqlcipher';
-import { app, clipboard, dialog, Notification } from 'electron';
+// Electron APIs are only used in the desktop app, not the library build.
+// All usages are guarded by isElectronRenderer below.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const isElectronRenderer = typeof process !== 'undefined' && process.type === 'renderer';
+type ElectronModule = typeof import('electron');
+const getElectron = (): ElectronModule | null => {
+  if (!isElectronRenderer) {
+    return null;
+  }
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('electron') as ElectronModule;
+  } catch {
+    return null;
+  }
+};
 import fs from 'fs';
 import path from 'path';
 
@@ -176,11 +191,16 @@ function _initializePaths(configDir: string) {
 }
 
 function showFailedToStart() {
-  const notification = new Notification({
-    title: 'Session failed to start',
-    body: 'Please start from terminal and open a github issue',
-  });
-  notification.show();
+  const electron = getElectron();
+  if (electron) {
+    const notification = new electron.Notification({
+      title: 'Session failed to start',
+      body: 'Please start from terminal and open a github issue',
+    });
+    notification.show();
+  } else {
+    console.error('[sql] Session failed to start. Please check the logs and open a GitHub issue.');
+  }
 }
 
 async function initializeSql({
@@ -259,24 +279,29 @@ async function initializeSql({
       throw error;
     }
     console.log('Database startup error:', error.stack);
-    const button = await dialog.showMessageBox({
-      buttons: [tr('errorCopyAndQuit'), tr('clearDataAll')],
-      defaultId: 0,
-      detail: redactAll(error.stack),
-      message: tr('errorDatabase'),
-      noLink: true,
-      type: 'error',
-    });
+    const electron = getElectron();
+    if (electron) {
+      const button = await electron.dialog.showMessageBox({
+        buttons: [tr('errorCopyAndQuit'), tr('clearDataAll')],
+        defaultId: 0,
+        detail: redactAll(error.stack),
+        message: tr('errorDatabase'),
+        noLink: true,
+        type: 'error',
+      });
 
-    if (button.response === 0) {
-      clipboard.writeText(`Database startup error:\n\n${redactAll(error.stack)}`);
-    } else {
-      closeDbInstance();
-      showFailedToStart();
+      if (button.response === 0) {
+        electron.clipboard.writeText(`Database startup error:\n\n${redactAll(error.stack)}`);
+      } else {
+        closeDbInstance();
+        showFailedToStart();
+      }
+
+      electron.app.exit(1);
+      return false;
     }
-
-    app.exit(1);
-    return false;
+    // Library mode: throw instead of showing a dialog or calling app.exit
+    throw error;
   }
 
   return true;
@@ -1862,7 +1887,8 @@ function getFirstUnreadMessageWithMention(
   const ourPkInThatConversation = getUsBlindedInThatServerIfNeeded(conversationId, instance);
 
   if (!ourPkInThatConversation || !ourPkInThatConversation.length) {
-    throw new Error('getFirstUnreadMessageWithMention needs our pubkey but nothing was given');
+    // Identity key not available in expected format — no pubkey means no @mentions possible
+    return undefined;
   }
 
   const sql = `SELECT ${MESSAGES_TABLE}.id

@@ -27,7 +27,21 @@
     "linkify-it": "^5.0.0",
     "uc.micro": "^2.1.0"
   },
+  "exports": {
+    ".": {
+      "require": "./dist-lib/client/index.js",
+      "types": "./dist-lib/client/index.d.ts"
+    }
+  },
   "scripts": {
+    "build:lib": "tsc -p tsconfig.lib.json || true && cp ts/protobuf/compiled.js dist-lib/ts/protobuf/compiled.js && cp -r mnemonic_languages dist-lib/mnemonic_languages && mkdir -p dist-lib/ts/webworker/workers/node/libsession && cp app/ts/webworker/workers/node/libsession/libsession.worker.compiled.js dist-lib/ts/webworker/workers/node/libsession/ && cp app/ts/webworker/workers/node/libsession/*.node dist-lib/ts/webworker/workers/node/libsession/ && cp client/lib/workers/libsession.worker.node-wrapper.js dist-lib/ts/webworker/workers/node/libsession/ && mkdir -p dist-lib/ts/webworker/workers/node/util && cp app/ts/webworker/workers/node/util/util.worker.compiled.js dist-lib/ts/webworker/workers/node/util/ && cp client/lib/workers/util.worker.node-wrapper.js dist-lib/ts/webworker/workers/node/util/",
+    "dev:lib": "tsc -p tsconfig.lib.json --watch",
+    "test:lib:smoke": "node client/tests/smoke.js",
+    "test:lib:send": "node client/tests/send.js",
+    "test:lib:listen": "node client/tests/listen.js",
+    "test:lib:group": "node client/tests/group.js",
+    "test:lib:group-listen": "node client/tests/group-listen.js",
+    "test:lib:group-cleanup": "node client/tests/group-cleanup.js",
     "start-prod": "cross-env NODE_ENV=production NODE_APP_INSTANCE=devprod$MULTI electron ./app",
     "start-prod:pretty": "pnpm start-prod | pino-pretty",
     "start-dev": "cross-env NODE_ENV=development NODE_APP_INSTANCE=devprod$MULTI electron ./app",

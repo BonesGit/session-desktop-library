@@ -1,5 +1,8 @@
 import { type Database } from '@signalapp/sqlcipher';
-import { app, BrowserWindow } from 'electron';
+// Electron BrowserWindow/app are only used in the desktop app for focus-based vacuum triggers.
+// In library mode (isElectronRenderer === false) monitorWindowStates() becomes a no-op
+// and hasFocusedWindow() always returns false, so vacuum runs on periodic schedule only.
+const isElectronRenderer = typeof process !== 'undefined' && process.type === 'renderer';
 import { DURATION } from '../session/constants';
 
 const category = '[dbVacuumManager]';
@@ -80,6 +83,14 @@ export class DBVacuumManager {
   }
 
   private monitorWindowStates() {
+    if (!isElectronRenderer) {
+      // Library mode: no window focus events — vacuum runs on periodic schedule only.
+      return;
+    }
+    // Dynamic import of Electron to avoid bundling it in the library build
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { app } = require('electron') as typeof import('electron');
+
     app.on('browser-window-blur', () => {
       if (this.blurredAtTimeoutId) {
         clearTimeout(this.blurredAtTimeoutId);
@@ -142,6 +153,11 @@ export class DBVacuumManager {
   }
 
   private hasFocusedWindow(): boolean {
+    if (!isElectronRenderer) {
+      return false;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { BrowserWindow } = require('electron') as typeof import('electron');
     return BrowserWindow.getAllWindows().some(win => win.isFocused());
   }
 

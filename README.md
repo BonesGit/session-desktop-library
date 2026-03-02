@@ -1,6 +1,35 @@
-# Session Desktop
+# Session Desktop & Library
 
-[Download at getsession.org](https://getsession.org/download)
+## Slop Fork Alert!!
+
+This is a fork of Session Desktop with an added build to produce a library to run the desktop headless. For use by the claws of the world. Used AI to do this but it seems fairly straight forward with minimal changes to the core desktop app portion. UI and app logic is already nicely decoupled.
+
+### Client Features
+
+- Account management — generate mnemonic, create new account, restore from mnemonic, get Session ID
+- 1:1 messaging — send text messages to any Session ID
+- Receive messages — real-time async iterator stream (for await (const msg of client.messages()))
+- Group chats (GroupV2) — create groups, send messages, add/remove members, leave groups
+- Conversation history — list all conversations, fetch message history with pagination
+- Attachments — send files/images with messages; download and decrypt received attachments
+- Contact management — accept contact requests, block/unblock contacts __(untested)__
+- Conversation updates — real-time async iterator stream for metadata changes __(untested)__
+- Profile — set display name __(untested)__
+- Disappearing messages — send with configurable expiry timer __(untested)__
+- Quoted replies — send messages quoting a prior message __(untested)__
+- Linked device sync — group creation pushes config to user's own swarm so other devices see it
+[SKILL.md](client/SKILL.md)  
+[See API docs](client/SKILL.md#messaging)  
+[SessionClient source](client/SessionClient.ts)  
+
+### Desktop Project Updates
+
+- New `build:lib` build target.
+- New `dist-lib` output folder.
+- New integration tests for the library.
+- __Electron API__ - Prevents bundling Electron in library builds. See `ts/node/dbVacuumManager.ts`, `ts/node/sql.ts` and `ts/session/apis/seed_node_api/SeedNodeAPI.ts`
+- __IPC / Attachment Path__ - Direct file access or parameter passing instead of IPC. Explicit paths instead of Electron app paths. `ts/types/MessageAttachment.ts`
+- __Worker compatibility:__ Support for both Node.js worker_threads and browser Web Workers. See `ts/webworker/`
 
 ## Summary
 

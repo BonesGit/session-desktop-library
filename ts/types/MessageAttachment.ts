@@ -1,4 +1,6 @@
-import { ipcRenderer } from 'electron';
+// ipcRenderer is only used in the Electron renderer to fetch the user data path.
+// In library mode, userDataPath is passed directly to initializeAttachmentLogic().
+const isElectronRenderer = typeof process !== 'undefined' && process.type === 'renderer';
 import { isArrayBuffer, isEmpty, isString, isUndefined, omit } from 'lodash';
 import { ConversationAttributes } from '../models/conversationAttributes';
 import { createDeleter, getAttachmentsPath } from '../shared/attachments/shared_attachments';
@@ -73,9 +75,19 @@ let internalGetAbsoluteAttachmentPath: ((relativePath: string) => string) | unde
 let internalDeleteOnDisk: ((relativePath: string) => Promise<void>) | undefined;
 let internalWriteNewAttachmentData: ((arrayBuffer: ArrayBuffer) => Promise<string>) | undefined;
 
-// userDataPath must be app.getPath('userData');
-export async function initializeAttachmentLogic() {
-  const userDataPath = ipcRenderer.sendSync('get-user-data-path');
+// userDataPath must be app.getPath('userData') in Electron, or a passed-in path in library mode.
+export async function initializeAttachmentLogic(userDataPath?: string) {
+  if (!userDataPath) {
+    if (!isElectronRenderer) {
+      throw new Error(
+        'initializeAttachmentLogic: userDataPath is required in library mode. Pass it to SessionClient constructor.'
+      );
+    }
+    // Electron renderer: fetch from main process via IPC
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { ipcRenderer } = require('electron') as typeof import('electron');
+    userDataPath = ipcRenderer.sendSync('get-user-data-path') as string;
+  }
 
   if (attachmentsPath) {
     throw new Error('attachmentsPath already initialized');

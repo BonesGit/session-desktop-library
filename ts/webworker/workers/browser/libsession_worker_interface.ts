@@ -43,6 +43,14 @@ const internalCallLibSessionWorker = async ([
   ...args
 ]: LibSessionWorkerFunctions): Promise<unknown> => {
   if (!libsessionWorkerInterface) {
+    // In library mode (Node.js worker_threads) the webpack-compiled bundle uses
+    // browser globals (onmessage/postMessage) because webpack stripped the
+    // worker_threads require. Use the node-wrapper which polyfills those globals
+    // before loading the bundle. In Electron mode the compiled.js is used directly.
+    const isLibraryMode = typeof process !== 'undefined' && process.type !== 'renderer';
+    const workerFile = isLibraryMode
+      ? 'libsession.worker.node-wrapper.js'
+      : 'libsession.worker.compiled.js';
     const libsessionWorkerPath = join(
       getAppRootPath(),
       'ts',
@@ -50,7 +58,7 @@ const internalCallLibSessionWorker = async ([
       'workers',
       'node',
       'libsession',
-      'libsession.worker.compiled.js'
+      workerFile
     );
 
     libsessionWorkerInterface = new WorkerInterface(libsessionWorkerPath, 1 * 60 * 1000);
