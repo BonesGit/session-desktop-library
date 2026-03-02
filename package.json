@@ -30,7 +30,8 @@
   "exports": {
     ".": {
       "require": "./dist-lib/client/index.js",
-      "types": "./dist-lib/client/index.d.ts"
+      "types": "./dist-lib/client/index.d.ts",
+      "default": "./dist-lib/client/index.js"
     }
   },
   "scripts": {
