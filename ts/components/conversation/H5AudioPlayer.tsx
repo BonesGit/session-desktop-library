@@ -1,5 +1,5 @@
 // Audio Player
-import { SessionDataTestId, useEffect, useRef, useState } from 'react';
+import { type ComponentType, SessionDataTestId, useEffect, useRef, useState } from 'react';
 import H5AudioPlayer, { RHAP_UI } from 'react-h5-audio-player';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
@@ -30,7 +30,10 @@ const StyledSpeedButton = styled.div`
   }
 `;
 
-export const StyledH5AudioPlayer = styled(H5AudioPlayer)<{ dropShadow?: boolean }>`
+// Cast to ComponentType<any> so declaration emit doesn't reference the non-exported PlayerProps type (TS4023)
+export const StyledH5AudioPlayer = styled(H5AudioPlayer as ComponentType<any>)<{
+  dropShadow?: boolean;
+}>`
   &.rhap_container {
     min-width: 220px;
     padding: 0px;
