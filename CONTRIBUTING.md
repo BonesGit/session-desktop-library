@@ -236,6 +236,11 @@ pnpm build
 # NOTE: on windows you need to use pnpm test-hoisted
 pnpm test                               # A good idea to make sure tests run first
 pnpm start-prod                         # Start Session!
+
+# build library
+pnpm build:lib                          # Optionally build the library
+# create and edit .env in client/test/
+pnpm run test:lib:prime                  # tests: send, listen, group, group-listen
 ```
 
 This will build the project and start the application in production mode.
