@@ -151,6 +151,14 @@ Get a single conversation by ID.
 ### `async *client.conversations(): AsyncIterable<Conversation>`
 Real-time stream of conversation updates (metadata changes, new messages, etc.).
 
+### `await client.setTypingIndicator(conversationId, isTyping): Promise<void>`
+Send a typing indicator to a 1:1 conversation. Only supported for private conversations.
+
+```typescript
+await client.setTypingIndicator('05abc...', true);  // started typing
+await client.setTypingIndicator('05abc...', false); // stopped typing
+```
+
 ---
 
 ## Groups (GroupV2)

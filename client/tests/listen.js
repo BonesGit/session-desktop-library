@@ -116,11 +116,24 @@ async function run() {
 
       if (msg.source && !seenIds.has(msg.id)) {
         seenIds.add(msg.id);
+        try {
+          await client.setTypingIndicator(msg.source, true);
+        } catch (e) {
+          console.log(`   ↳ typing indicator (start) failed: ${e.message}`);
+        }
         let replyBody = `Got it: ${msg.body ?? ''}`;
         if (hasNonImageAttachment) replyBody += ' (attachment file received)';
         const replyOpts = downloadedImages.length > 0 ? { attachments: downloadedImages } : {};
-        await client.sendMessage(msg.source, replyBody, replyOpts);
-        console.log(`   → replied to ${msg.source}${downloadedImages.length > 0 ? ` with ${downloadedImages.length} image(s)` : ''}`);
+        try {
+          await client.sendMessage(msg.source, replyBody, replyOpts);
+          console.log(`   → replied to ${msg.source}${downloadedImages.length > 0 ? ` with ${downloadedImages.length} image(s)` : ''}`);
+        } finally {
+          try {
+            await client.setTypingIndicator(msg.source, false);
+          } catch (e) {
+            console.log(`   ↳ typing indicator (stop) failed: ${e.message}`);
+          }
+        }
       }
     }
   })();

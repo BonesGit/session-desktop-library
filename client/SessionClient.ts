@@ -468,6 +468,54 @@ export class SessionClient extends EventEmitter {
     }
   }
 
+  /**
+   * Send a typing indicator to a 1:1 conversation.
+   * Only supported for private conversations — groups don't support typing indicators.
+   *
+   * @param conversationId - The Session ID of the contact.
+   * @param isTyping - true = started typing, false = stopped typing.
+   */
+  async setTypingIndicator(conversationId: string, isTyping: boolean): Promise<void> {
+    this._assertInitialized();
+
+    const { ConvoHub } = await import('../ts/session/conversations');
+    const convo: AnyValue = ConvoHub.use().get(conversationId);
+    if (!convo) {
+      throw new Error(`Conversation not found: ${conversationId}`);
+    }
+    if (!convo.isPrivate?.()) {
+      throw new Error('Typing indicators are only supported for private (1:1) conversations');
+    }
+
+    const [
+      { TypingMessage },
+      { MessageQueue },
+      { NetworkTime },
+      { PubKey },
+      { SnodeNamespaces },
+      { v4: uuidV4 },
+    ] = await Promise.all([
+      import('../ts/session/messages/outgoing/controlMessage/TypingMessage'),
+      import('../ts/session/sending/MessageQueue'),
+      import('../ts/util/NetworkTime'),
+      import('../ts/session/types/PubKey'),
+      import('../ts/session/apis/snode_api/namespaces'),
+      import('uuid'),
+    ]);
+
+    const typingMessage = new TypingMessage({
+      createAtNetworkTimestamp: NetworkTime.now(),
+      isTyping,
+      dbMessageIdentifier: uuidV4(),
+    });
+
+    await MessageQueue.use().sendTo1o1NonDurably({
+      pubkey: new PubKey(conversationId),
+      message: typingMessage,
+      namespace: SnodeNamespaces.Default,
+    });
+  }
+
   // ---------------------------------------------------------------------------
   // Groups
   // ---------------------------------------------------------------------------
