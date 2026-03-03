@@ -1,0 +1,48 @@
+{
+  "name": "@bonesgit/session-desktop-library",
+  "version": "0.1.0",
+  "description": "Headless Node.js API for the Session decentralized private messaging protocol",
+  "license": "GPL-3.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./client/index.js",
+  "types": "./client/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./client/index.js",
+      "types": "./client/index.d.ts",
+      "default": "./client/index.js"
+    }
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.11.1",
+    "@signalapp/sqlcipher": "3.1.0",
+    "abort-controller": "3.0.0",
+    "auto-bind": "^4.0.0",
+    "blob-util": "2.0.2",
+    "buffer-crc32": "1.0.0",
+    "bytebuffer": "^5.0.1",
+    "config": "3.3.12",
+    "curve25519-js": "https://github.com/session-foundation/curve25519-js",
+    "fs-extra": "11.3.0",
+    "image-type": "^4.1.0",
+    "libsession_util_nodejs": "https://github.com/session-foundation/libsession-util-nodejs/releases/download/v0.6.12/libsession_util_nodejs-v0.6.12.tar.gz",
+    "libsodium-wrappers-sumo": "^0.7.15",
+    "linkify-it": "^5.0.0",
+    "lodash": "^4.17.21",
+    "long": "^4.0.0",
+    "node-fetch": "^2.7.0",
+    "p-retry": "^4.6.2",
+    "p-timeout": "4.1.0",
+    "pino": "^9.6.0",
+    "protobufjs": "^7.4.0",
+    "punycode": "^2.3.1",
+    "redux": "5.0.1",
+    "redux-promise-middleware": "6.2.0",
+    "reselect": "5.1.1",
+    "semver": "^7.7.1",
+    "uuid": "11.1.0",
+    "zod": "4.1.13"
+  }
+}
