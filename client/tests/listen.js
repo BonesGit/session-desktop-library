@@ -94,33 +94,35 @@ async function run() {
       console.log(`   from    : ${msg.source}`);
       console.log(`   body    : ${msg.body ?? '(no body)'}`);
       console.log(`   time    : ${new Date(msg.timestamp).toISOString()}`);
-      // Download attachments and track images to echo back
-      const downloadedImages = [];
-      let hasNonImageAttachment = false;
-      if (msg.attachments?.length) {
-        console.log(`   attach  : ${msg.attachments.length} attachment(s)`);
-        for (const att of msg.attachments) {
-          try {
-            const localPath = await client.downloadAttachment(att, DOWNLOADS_PATH);
-            console.log(`   ↳ downloaded: ${att.fileName ?? att.contentType} → ${localPath}`);
-            if (att.contentType?.startsWith('image/')) {
-              downloadedImages.push({ path: localPath, contentType: att.contentType, fileName: att.fileName });
-            } else {
-              hasNonImageAttachment = true;
-            }
-          } catch (e) {
-            console.log(`   ↳ download failed: ${e.message}`);
-          }
-        }
-      }
 
       if (msg.source && !seenIds.has(msg.id)) {
         seenIds.add(msg.id);
         try {
-          await client.setTypingIndicator(msg.source, true);
+          await client.setTyping(msg.source, true);
         } catch (e) {
           console.log(`   ↳ typing indicator (start) failed: ${e.message}`);
         }
+
+        // Download attachments and track images to echo back
+        const downloadedImages = [];
+        let hasNonImageAttachment = false;
+        if (msg.attachments?.length) {
+          console.log(`   attach  : ${msg.attachments.length} attachment(s)`);
+          for (const att of msg.attachments) {
+            try {
+              const localPath = await client.downloadAttachment(att, DOWNLOADS_PATH);
+              console.log(`   ↳ downloaded: ${att.fileName ?? att.contentType} → ${localPath}`);
+              if (att.contentType?.startsWith('image/')) {
+                downloadedImages.push({ path: localPath, contentType: att.contentType, fileName: att.fileName });
+              } else {
+                hasNonImageAttachment = true;
+              }
+            } catch (e) {
+              console.log(`   ↳ download failed: ${e.message}`);
+            }
+          }
+        }
+
         let replyBody = `Got it: ${msg.body ?? ''}`;
         if (hasNonImageAttachment) replyBody += ' (attachment file received)';
         const replyOpts = downloadedImages.length > 0 ? { attachments: downloadedImages } : {};
@@ -129,7 +131,7 @@ async function run() {
           console.log(`   → replied to ${msg.source}${downloadedImages.length > 0 ? ` with ${downloadedImages.length} image(s)` : ''}`);
         } finally {
           try {
-            await client.setTypingIndicator(msg.source, false);
+            await client.setTyping(msg.source, false);
           } catch (e) {
             console.log(`   ↳ typing indicator (stop) failed: ${e.message}`);
           }

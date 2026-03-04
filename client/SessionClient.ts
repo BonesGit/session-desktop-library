@@ -475,7 +475,7 @@ export class SessionClient extends EventEmitter {
    * @param conversationId - The Session ID of the contact.
    * @param isTyping - true = started typing, false = stopped typing.
    */
-  async setTypingIndicator(conversationId: string, isTyping: boolean): Promise<void> {
+  async setTyping(conversationId: string, isTyping: boolean): Promise<void> {
     this._assertInitialized();
 
     const { ConvoHub } = await import('../ts/session/conversations');
