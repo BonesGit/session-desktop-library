@@ -4,7 +4,8 @@ import { getSodiumRenderer } from '../session/crypto';
 import { ed25519Str, fromArrayBufferToBase64, fromHex, toHex } from '../session/utils/String';
 import { configurationMessageReceived } from '../shims/events';
 
-import { SessionButtonColor } from '../components/basic/SessionButton';
+// Inlined from components/basic/SessionButton.tsx to avoid pulling in React component chain
+const SessionButtonColor = { Danger: 'danger' } as const;
 import { Data } from '../data/data';
 import { SettingsKey } from '../data/settings-key';
 import { ConversationTypeEnum } from '../models/types';
@@ -16,7 +17,11 @@ import { getSwarmPollingInstance } from '../session/apis/snode_api';
 import { mnDecode, mnEncode } from '../session/crypto/mnemonic';
 import { getOurPubKeyStrFromCache } from '../session/utils/User';
 import { LibSessionUtil } from '../session/utils/libsession/libsession_utils';
-import { updateConfirmModal, updateDeleteAccountModal } from '../state/ducks/modalDialog';
+const _acctMdPath = '../state/ducks/modalDialog';
+const updateConfirmModal: (arg: any) => any =
+  process.type === 'renderer' ? (require(_acctMdPath) as any).updateConfirmModal : () => ({});
+const updateDeleteAccountModal: (arg: any) => any =
+  process.type === 'renderer' ? (require(_acctMdPath) as any).updateDeleteAccountModal : () => ({});
 import { userActions } from '../state/ducks/user';
 import { Registration } from './registration';
 import { Storage, saveRecoveryPhrase, setLocalPubKey, setSignInByLinking } from './storage';

@@ -1,8 +1,25 @@
 import { toast } from 'react-toastify';
-import { SessionToast, SessionToastType } from '../../components/basic/SessionToast';
 import { getPromotedGroupUpdateChangeStr } from '../../models/groupUpdate';
 import { tStripped, tStrippedWithObj } from '../../localization/localeTools';
-import { userSettingsModal } from '../../state/ducks/modalDialog';
+
+// SessionToast and userSettingsModal are loaded via variable-path requires so TypeScript
+// does not pull the React UI components into the library compilation graph.
+// In library mode the entire Toast.tsx output is replaced by toastStub.js anyway.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const _stPath = '../../components/basic/SessionToast';
+// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-dynamic-require
+const _stMod: any = process.type === 'renderer' ? require(_stPath) : {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SessionToast: any = _stMod.SessionToast;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SessionToastType: any = _stMod.SessionToastType;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const _mdPath = '../../state/ducks/modalDialog';
+// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-dynamic-require
+const _mdMod: any = process.type === 'renderer' ? require(_mdPath) : {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const userSettingsModal: any = _mdMod.userSettingsModal;
 
 // if you push a toast manually with toast...() be sure to set the type attribute of the SessionToast component
 export function pushToastError(id: string, description: string) {

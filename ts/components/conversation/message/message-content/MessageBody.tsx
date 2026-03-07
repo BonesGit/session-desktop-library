@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 import type { ReactNode, JSX, MouseEvent } from 'react';
 import { getAppDispatch } from '../../../../state/dispatch';
-import { RenderTextCallbackType } from '../../../../types/Util';
+import { RenderTextCallbackType } from '../../../../types/UITypes';
 import { getEmojiSizeClass, SizeClassType } from '../../../../util/emoji';
 import { LinkPreviews } from '../../../../util/linkPreviews';
 import { AddMentions } from '../../AddMentions';

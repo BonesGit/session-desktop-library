@@ -4,7 +4,11 @@ import { ConvoHub } from '../../session/conversations';
 import { SyncUtils, UserUtils } from '../../session/utils';
 import { uploadAndSetOurAvatarShared } from '../../interactions/avatar-interactions/nts-avatar-interactions';
 import { ed25519Str } from '../../session/utils/String';
-import { userSettingsModal, updateEditProfilePictureModal } from './modalDialog';
+const _userMdPath = './modalDialog';
+const userSettingsModal: (arg: any) => any =
+  process.type === 'renderer' ? (require(_userMdPath) as any).userSettingsModal : () => ({});
+const updateEditProfilePictureModal: (arg: any) => any =
+  process.type === 'renderer' ? (require(_userMdPath) as any).updateEditProfilePictureModal : () => ({});
 import { NetworkTime } from '../../util/NetworkTime';
 import { UserConfigWrapperActions } from '../../webworker/workers/browser/libsession/libsession_worker_userconfig_interface';
 import { SessionProfileResetAvatarPrivate } from '../../models/profile';

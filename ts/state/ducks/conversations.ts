@@ -2,7 +2,15 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { PubkeyType } from 'libsession_util_nodejs';
 import { omit } from 'lodash';
-import { ReplyingToMessageProps } from '../../components/conversation/composition/CompositionBox';
+// Inlined from CompositionBox to avoid pulling React components into the library build
+type ReplyingToMessageProps = {
+  convoId: string;
+  id: string;
+  author: string;
+  timestamp: number;
+  text?: string;
+  attachments?: Array<any>;
+};
 import { Data } from '../../data/data';
 
 import { ConversationNotificationSettingType } from '../../models/conversationAttributes';
@@ -26,14 +34,17 @@ import { AttachmentType } from '../../types/Attachment';
 import { CONVERSATION_PRIORITIES, ConversationTypeEnum } from '../../models/types';
 import { WithConvoId, WithMessageHash, WithMessageId } from '../../session/types/with';
 import { cancelUpdatesToDispatch } from '../../models/message';
-import type { SessionSuggestionDataItem } from '../../components/conversation/composition/types';
+// Inlined from composition/types.d.ts to avoid pulling React components into the library build
+type SessionSuggestionDataItem = { id: string; display: string };
 import { Storage } from '../../util/storage';
 import { SettingsKey } from '../../data/settings-key';
 import { sectionActions } from './section';
 import { ed25519Str } from '../../session/utils/String';
 import { UserUtils } from '../../session/utils';
 import type { ProMessageFeature } from '../../models/proMessageFeature';
-import { handleTriggeredCTAs } from '../../components/dialog/SessionCTA';
+const _ctaPath = '../../components/dialog/SessionCTA';
+const handleTriggeredCTAs: (dispatch: any, val: boolean) => Promise<void> =
+  process.type === 'renderer' ? (require(_ctaPath) as any).handleTriggeredCTAs : async () => {};
 import { getFeatureFlag } from './types/releasedFeaturesReduxTypes';
 import type { Quote } from '../../session/messages/outgoing/visibleMessage/VisibleMessage';
 

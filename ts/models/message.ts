@@ -101,9 +101,9 @@ import {
   type DisappearingMessageType,
 } from '../session/disappearing_messages/types';
 import { Model } from './models';
-import { ReduxOnionSelectors } from '../state/selectors/onions';
+import { ReduxOnionSelectors } from '../session/state/storeAccessors';
 import { tStrippedWithObj, tr, tStripped } from '../localization/localeTools';
-import type { QuotedAttachmentType } from '../components/conversation/message/message-content/quote/Quote';
+import type { QuotedAttachmentType } from '../types/messageCompositionTypes';
 import { ProFeatures, ProMessageFeature } from './proMessageFeature';
 import { privateSet, privateSetKey } from './modelFriends';
 import { getFeatureFlag } from '../state/ducks/types/releasedFeaturesReduxTypes';

@@ -11,7 +11,7 @@ import { SettingsKey } from '../data/settings-key';
 import {
   deleteMessagesFromSwarmAndCompletelyLocally,
   deleteMessagesFromSwarmAndMarkAsDeletedLocally,
-} from '../interactions/conversations/unsendingInteractions';
+} from '../session/conversations/messageDeleteUtils';
 import { findCachedBlindedMatchOrLookupOnAllServers } from '../session/apis/open_group_api/sogsv3/knownBlindedkeys';
 import { ConvoHub } from '../session/conversations';
 import { getSodiumRenderer } from '../session/crypto';
@@ -22,7 +22,7 @@ import { UserUtils } from '../session/utils';
 import { perfEnd, perfStart } from '../session/utils/Performance';
 import { ed25519Str } from '../session/utils/String';
 import { isUsFromCache } from '../session/utils/User';
-import { BlockedNumberController } from '../util';
+import { BlockedNumberController } from '../util/blockedNumberController';
 import { ReadReceipts } from '../util/readReceipts';
 import { Storage } from '../util/storage';
 import {

@@ -13,15 +13,14 @@ import { DisappearingMessages } from '../session/disappearing_messages';
 import { PubKey } from '../session/types';
 import { UserUtils } from '../session/utils';
 import { lookupQuoteInStore, pushQuotedMessageDetails } from '../state/ducks/conversations';
-import { selectMemberInviteSentOutsideRedux } from '../state/selectors/groups';
+import { selectMemberInviteSentOutsideRedux } from '../session/state/storeAccessors';
 import { LinkPreviews } from '../util/linkPreviews';
 import { GroupV2Receiver } from './groupv2/handleGroupV2Message';
 import { Constants } from '../session';
 import { longOrNumberToNumber } from '../types/long/longOrNumberToNumber';
-import { getHideMessageRequestBannerOutsideRedux } from '../state/selectors/settings';
+import { getHideMessageRequestBannerOutsideRedux } from '../session/state/storeAccessors';
 import { showMessageRequestBannerOutsideRedux } from '../state/ducks/settings';
 import { getFeatureFlag } from '../state/ducks/types/releasedFeaturesReduxTypes';
-import type { StateType } from '../state/reducer';
 import { isUsFromCache } from '../session/utils/User';
 import { isUsAnySogsFromCache } from '../session/apis/open_group_api/sogsv3/knownBlindedkeys';
 import { ProWrapperActions } from '../webworker/workers/browser/libsession_worker_interface';
@@ -34,7 +33,7 @@ export async function pushQuotedMessageToStoreIfNeeded(quoteDetails: {
   const { foundProps } = lookupQuoteInStore({
     timestamp: idNumber,
     quotedMessagesInStore:
-      (window.inboxStore?.getState() as StateType)?.conversations.quotedMessages || [],
+      (window.inboxStore?.getState() as any)?.conversations.quotedMessages || [],
   });
   if (foundProps) {
     return foundProps;

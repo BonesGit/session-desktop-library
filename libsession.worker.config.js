@@ -33,6 +33,11 @@ module.exports = {
     path: path.resolve(__dirname, 'app', 'ts', 'webworker', 'workers', 'node', 'libsession'),
   },
   target: 'node',
+  externals: {
+    // Do NOT bundle the native addon — let the consumer's node_modules supply
+    // the platform-specific binary at runtime.
+    libsession_util_nodejs: 'commonjs libsession_util_nodejs',
+  },
   optimization: {
     minimize: process.env.NODE_ENV === 'production',
   },

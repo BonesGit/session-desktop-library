@@ -16,7 +16,7 @@ import { DeleteUserHashesFactory } from './factories/DeleteUserHashesRequestFact
 import { SnodePool } from './snodePool';
 import { DURATION } from '../../constants';
 import { timeoutWithAbort } from '../../utils/Promise';
-import { ReduxOnionSelectors } from '../../../state/selectors/onions';
+import { ReduxOnionSelectors } from '../../state/storeAccessors';
 
 export const ERROR_CODE_NO_CONNECT = 'ENETUNREACH: No network connection.';
 

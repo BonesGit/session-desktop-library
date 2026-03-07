@@ -3,7 +3,7 @@ import { ContactInfoGet, GroupPubkeyType, UserGroupsGet } from 'libsession_util_
 import { compact, difference, isEmpty, isNil, isNumber } from 'lodash';
 import { ConfigDumpData } from '../data/configDump/configDump';
 import { SettingsKey } from '../data/settings-key';
-import { deleteAllMessagesByConvoIdNoConfirmation } from '../interactions/conversationInteractions';
+import { deleteAllMessagesByConvoIdNoConfirmation } from '../session/conversations/messageDeleteUtils';
 import { getOpenGroupManager } from '../session/apis/open_group_api/opengroupV2/OpenGroupManagerV2';
 import { OpenGroupUtils } from '../session/apis/open_group_api/utils';
 import { getOpenGroupV2ConversationId } from '../session/apis/open_group_api/utils/OpenGroupUtils';
@@ -18,9 +18,9 @@ import { SessionUtilContact } from '../session/utils/libsession/libsession_utils
 import { SessionUtilConvoInfoVolatile } from '../session/utils/libsession/libsession_utils_convo_info_volatile';
 import { SessionUtilUserGroups } from '../session/utils/libsession/libsession_utils_user_groups';
 import { configurationMessageReceived } from '../shims/events';
-import { getCurrentlySelectedConversationOutsideRedux } from '../state/selectors/conversations';
+import { getCurrentlySelectedConversationOutsideRedux } from '../session/state/storeAccessors';
 import { assertUnreachable, stringify, toFixedUint8ArrayOfLength } from '../types/sqlSharedTypes';
-import { BlockedNumberController } from '../util';
+import { BlockedNumberController } from '../util/blockedNumberController';
 import { Storage } from '../util/storage';
 // eslint-disable-next-line import/no-unresolved, import/extensions
 import { HexString } from '../node/hexStrings';

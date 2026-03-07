@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import type { ReactNode } from 'react';
-import type { RenderTextCallbackType } from '../../types/Util';
+import type { RenderTextCallbackType } from '../../types/UITypes';
 import type { SizeClassType } from '../../util/emoji';
 import { AddNewLines } from '../conversation/AddNewLines';
 import { Emojify } from '../conversation/Emojify';

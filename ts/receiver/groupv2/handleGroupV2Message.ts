@@ -1,8 +1,7 @@
 import { GroupPubkeyType, PubkeyType, WithGroupPubkey } from 'libsession_util_nodejs';
 import { isEmpty, isFinite, isNumber } from 'lodash';
 import { Data } from '../../data/data';
-import { deleteAllMessagesByConvoIdNoConfirmation } from '../../interactions/conversationInteractions';
-import { deleteMessagesFromSwarmOnly } from '../../interactions/conversations/unsendingInteractions';
+import { deleteAllMessagesByConvoIdNoConfirmation, deleteMessagesFromSwarmOnly } from '../../session/conversations/messageDeleteUtils';
 import { CONVERSATION_PRIORITIES, ConversationTypeEnum } from '../../models/types';
 import { HexString } from '../../node/hexStrings';
 import { SignalService } from '../../protobuf';
@@ -21,7 +20,7 @@ import { LibSessionUtil } from '../../session/utils/libsession/libsession_utils'
 import { SessionUtilConvoInfoVolatile } from '../../session/utils/libsession/libsession_utils_convo_info_volatile';
 import { groupInfoActions } from '../../state/ducks/metaGroups';
 import { stringify, toFixedUint8ArrayOfLength } from '../../types/sqlSharedTypes';
-import { BlockedNumberController } from '../../util';
+import { BlockedNumberController } from '../../util/blockedNumberController';
 import {
   MetaGroupWrapperActions,
   UserGroupsWrapperActions,

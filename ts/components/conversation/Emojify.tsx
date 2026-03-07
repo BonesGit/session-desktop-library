@@ -1,5 +1,5 @@
 import { SizeClassType } from '../../util/emoji';
-import { RenderTextCallbackType } from '../../types/Util';
+import { RenderTextCallbackType } from '../../types/UITypes';
 
 type Props = {
   text: string;

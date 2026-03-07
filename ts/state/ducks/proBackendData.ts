@@ -1,13 +1,16 @@
 import type { ProProof, WithMasterPrivKeyHex } from 'libsession_util_nodejs';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { isUndefined } from 'lodash';
-import type { StateType } from '../reducer';
 import ProBackendAPI from '../../session/apis/pro_backend_api/ProBackendAPI';
 import { getFeatureFlag } from './types/releasedFeaturesReduxTypes';
 import { UserUtils } from '../../session/utils';
 import { getProMasterKeyHex } from '../../session/utils/User';
-import { updateLocalizedPopupDialog } from './modalDialog';
-import { showLinkVisitWarningDialog } from '../../components/dialog/OpenUrlModal';
+const _mdPath = './modalDialog';
+const updateLocalizedPopupDialog: (arg: any) => any =
+  process.type === 'renderer' ? (require(_mdPath) as any).updateLocalizedPopupDialog : () => ({});
+const _ouPath = '../../components/dialog/OpenUrlModal';
+const showLinkVisitWarningDialog: (url: string, dispatch: any) => void =
+  process.type === 'renderer' ? (require(_ouPath) as any).showLinkVisitWarningDialog : () => {};
 import { ProStatus } from '../../session/apis/pro_backend_api/types';
 import { SettingsKey } from '../../data/settings-key';
 import { ProDetailsResultType } from '../../session/apis/pro_backend_api/schemas';
@@ -21,7 +24,9 @@ import {
   UserConfigWrapperActions,
 } from '../../webworker/workers/browser/libsession/libsession_worker_userconfig_interface';
 import { ConvoHub } from '../../session/conversations';
-import { handleTriggeredCTAs } from '../../components/dialog/SessionCTA';
+const _ctaPath2 = '../../components/dialog/SessionCTA';
+const handleTriggeredCTAs: (dispatch: any, val: boolean) => Promise<void> =
+  process.type === 'renderer' ? (require(_ctaPath2) as any).handleTriggeredCTAs : async () => {};
 
 type RequestState<D = unknown> = {
   isFetching: boolean;
@@ -90,7 +95,7 @@ async function createProBackendFetchAsyncThunk<D>({
     window?.log?.debug(`[${key}] starting ${new Date().toISOString()}`);
   }
 
-  const state = payloadCreator.getState() as StateType;
+  const state = payloadCreator.getState() as any;
   const initialState = state.proBackendData[key] as RequestState<D>;
   let result = initialState;
   try {
@@ -460,7 +465,7 @@ const refreshGetProDetailsFromProBackend = createAsyncThunk(
       );
     }
 
-    const state = payloadCreator.getState() as StateType;
+    const state = payloadCreator.getState() as any;
 
     if (state.proBackendData.details.isFetching) {
       return;

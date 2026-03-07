@@ -6,7 +6,7 @@ import { toLogFormat } from './Errors';
 
 import { DecryptedAttachmentsManager } from '../../session/crypto/DecryptedAttachmentsManager';
 import { ToastUtils } from '../../session/utils';
-import { GoogleChrome } from '../../util';
+import * as GoogleChrome from '../../util/GoogleChrome';
 import { isAudio } from '../MIME';
 import { formatTimeDurationMs } from '../../util/i18n/formatting/generics';
 import { isTestIntegration } from '../../shared/env_vars';

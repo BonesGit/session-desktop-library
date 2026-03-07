@@ -11,17 +11,17 @@ import {
   actions as conversationActions,
   resetConversationExternal,
 } from '../../state/ducks/conversations';
-import { BlockedNumberController } from '../../util';
+import { BlockedNumberController } from '../../util/blockedNumberController';
 import { getOpenGroupManager } from '../apis/open_group_api/opengroupV2/OpenGroupManagerV2';
 import { PubKey } from '../types';
 
 import { ConfigDumpData } from '../../data/configDump/configDump';
-import { deleteAllMessagesByConvoIdNoConfirmation } from '../../interactions/conversationInteractions';
+import { deleteAllMessagesByConvoIdNoConfirmation } from './messageDeleteUtils';
 import { groupInfoActions } from '../../state/ducks/metaGroups';
 import {
   getCurrentlySelectedConversationOutsideRedux,
   getLeftPaneConversationIdsCount,
-} from '../../state/selectors/conversations';
+} from '../state/storeAccessors';
 import { stringify } from '../../types/sqlSharedTypes';
 import {
   MetaGroupWrapperActions,
@@ -52,7 +52,7 @@ import { isSignWithRecoveryPhrase } from '../../util/storage';
 import {
   getDismissedRecoveryPhrasePrompt,
   getShowRecoveryPhrasePrompt,
-} from '../../state/selectors/settings';
+} from '../state/storeAccessors';
 import { SettingsKey } from '../../data/settings-key';
 import { uuidV4 } from '../../util/uuid';
 

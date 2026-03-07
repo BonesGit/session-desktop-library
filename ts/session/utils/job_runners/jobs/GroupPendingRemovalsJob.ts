@@ -4,7 +4,7 @@ import { compact, isEmpty, isNumber } from 'lodash';
 import AbortController from 'abort-controller';
 import { StringUtils } from '../..';
 import { Data } from '../../../../data/data';
-import { deleteMessagesFromSwarmOnly } from '../../../../interactions/conversations/unsendingInteractions';
+import { deleteMessagesFromSwarmOnly } from '../../../conversations/messageDeleteUtils';
 import {
   MetaGroupWrapperActions,
   MultiEncryptWrapperActions,

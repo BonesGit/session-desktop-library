@@ -2,7 +2,9 @@ import { isEmpty, uniq } from 'lodash';
 import { PubkeyType, WithGroupPubkey } from 'libsession_util_nodejs';
 import AbortController from 'abort-controller';
 import { READ_MESSAGE_STATE } from '../models/conversationAttributes';
-import { CallManager, PromiseUtils, ToastUtils, UserUtils } from '../session/utils';
+import { handleAcceptConversationRequestWithoutConfirm } from '../session/conversations/conversationRequestUtils';
+import { deleteAllMessagesByConvoIdNoConfirmation } from '../session/conversations/messageDeleteUtils';
+import { CallManager, ToastUtils, UserUtils } from '../session/utils';
 
 import { SessionButtonColor } from '../components/basic/SessionButton';
 import { getCallMediaPermissionsSettings } from '../components/settings/SessionSettings';
@@ -10,16 +12,14 @@ import { Data } from '../data/data';
 import { SettingsKey } from '../data/settings-key';
 import { ConversationTypeEnum } from '../models/types';
 import { OpenGroupUtils } from '../session/apis/open_group_api/utils';
-import { getSwarmPollingInstance } from '../session/apis/snode_api';
 import { ConvoHub } from '../session/conversations';
 import { DisappearingMessageConversationModeType } from '../session/disappearing_messages/types';
 import { PubKey } from '../session/types';
 import { perfEnd, perfStart } from '../session/utils/Performance';
-import { sleepFor, timeoutWithAbort } from '../session/utils/Promise';
+import { timeoutWithAbort } from '../session/utils/Promise';
 import { ed25519Str } from '../session/utils/String';
 import { SessionUtilContact } from '../session/utils/libsession/libsession_utils_contacts';
 import {
-  conversationReset,
   quoteMessage,
   resetConversationExternal,
 } from '../state/ducks/conversations';
@@ -32,7 +32,6 @@ import { Storage } from '../util/storage';
 import { UserGroupsWrapperActions } from '../webworker/workers/browser/libsession_worker_interface';
 import { ConversationInteractionStatus, ConversationInteractionType } from './types';
 import { BlockedNumberController } from '../util';
-import { sendInviteResponseToGroup } from '../session/sending/group/GroupInviteResponse';
 import { NetworkTime } from '../util/NetworkTime';
 import { ClosedGroup } from '../session/group/closed-group';
 import { GroupUpdateMessageFactory } from '../session/messages/message_factory/group/groupUpdateMessageFactory';
@@ -60,84 +59,9 @@ export async function copyPublicKeyByConvoId(convoId: string) {
   }
 }
 
-/**
- * Accept if needed the message request from this user.
- * Note: approvalMessageTimestamp is provided to be able to insert the "You've accepted the message request" at the right place.
- * When accepting a message request by sending a message, we need to make sure the "You've accepted the message request" is before the
- * message we are sending to the user.
- *
- */
-export const handleAcceptConversationRequestWithoutConfirm = async ({
-  convoId,
-  approvalMessageTimestamp,
-}: {
-  convoId: string;
-  approvalMessageTimestamp: number;
-}) => {
-  const convo = ConvoHub.use().get(convoId);
-  if (!convo || convo.isApproved() || (!convo.isPrivate() && !convo.isClosedGroupV2())) {
-    window?.log?.debug('Conversation is already approved or not private/03group');
-
-    return null;
-  }
-
-  const previousIsApproved = convo.isApproved();
-  const previousDidApprovedMe = convo.didApproveMe();
-  // Note: we don't mark as approvedMe = true, as we do not know if they did send us a message yet.
-  await convo.setIsApproved(true, false);
-  await convo.commit();
-
-  if (convo.isPrivate()) {
-    // we only need the approval message (and sending a reply) when we are accepting a message request. i.e. someone sent us a message already and we didn't accept it yet.
-    if (!previousIsApproved && previousDidApprovedMe) {
-      const msg = await convo.addOutgoingApprovalMessage(approvalMessageTimestamp);
-      await convo.sendMessageRequestResponse(msg);
-    }
-
-    return null;
-  }
-  if (PubKey.is03Pubkey(convoId)) {
-    const found = await UserGroupsWrapperActions.getGroup(convoId);
-    if (!found) {
-      window.log.warn('cannot approve a non existing group in user group');
-      return null;
-    }
-    // this updates the wrapper and refresh the redux slice
-    await UserGroupsWrapperActions.setGroup({ ...found, invitePending: false });
-
-    // nothing else to do (and especially not wait for first poll) when the convo was already approved
-    if (previousIsApproved) {
-      return null;
-    }
-    const pollAndSendResponsePromise = new Promise(resolve => {
-      getSwarmPollingInstance().addGroupId(convoId, async () => {
-        // we need to do a first poll to fetch the keys etc before we can send our invite response
-        // this is pretty hacky, but also an admin seeing a message from that user in the group will mark it as not pending anymore
-        await sleepFor(2000);
-        if (!previousIsApproved) {
-          await sendInviteResponseToGroup({ groupPk: convoId });
-        }
-
-        window.log.info(
-          `handleAcceptConversationRequestWithoutConfirm: first poll for group ${ed25519Str(convoId)} happened, we should have encryption keys now`
-        );
-        return resolve(true);
-      });
-    });
-
-    // try at most 10s for the keys, and everything to come before continuing processing.
-    // Note: this is important as otherwise the polling just hangs when sending a message to a group (as the cb in addGroupId() is never called back)
-    const timeout = 10000;
-    try {
-      await PromiseUtils.timeout(pollAndSendResponsePromise, timeout);
-    } catch (e) {
-      window.log.warn(
-        `handleAcceptConversationRequestWithoutConfirm: waited ${timeout}ms for first poll of group ${ed25519Str(convoId)} to happen, but timed out with: ${e.message}`
-      );
-    }
-  }
-  return null;
-};
+// Moved to ts/session/conversations/conversationRequestUtils.ts for library build isolation.
+// Re-exported here for backward-compatibility with the desktop app.
+export { handleAcceptConversationRequestWithoutConfirm };
 
 export async function declineConversationWithoutConfirm({
   alsoBlock,
@@ -246,18 +170,9 @@ export async function markAllReadByConvoId(conversationId: string) {
   perfEnd(`markAllReadByConvoId-${conversationId}`, 'markAllReadByConvoId');
 }
 
-export async function deleteAllMessagesByConvoIdNoConfirmation(conversationId: string) {
-  const conversation = ConvoHub.use().get(conversationId);
-  await Data.removeAllMessagesInConversation(conversationId);
-
-  // destroy message keeps the active timestamp set so the
-  // conversation still appears on the conversation list but is empty
-  conversation.setLastMessage(null);
-  conversation.setLastMessageInteraction(null);
-
-  await conversation.commit();
-  window.inboxStore?.dispatch(conversationReset(conversationId));
-}
+// Moved to ts/session/conversations/messageDeleteUtils.ts for library build isolation.
+// Re-exported here for backward-compatibility with the desktop app.
+export { deleteAllMessagesByConvoIdNoConfirmation };
 
 export async function setDisappearingMessagesByConvoId(
   conversationId: string,

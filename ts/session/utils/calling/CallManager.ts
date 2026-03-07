@@ -20,9 +20,19 @@ import { ConvoHub } from '../../conversations';
 import { CallMessage } from '../../messages/outgoing/controlMessage/CallMessage';
 import { PubKey } from '../../types';
 
-import { getCallMediaPermissionsSettings } from '../../../components/settings/SessionSettings';
 import { Data } from '../../../data/data';
-import { handleAcceptConversationRequestWithoutConfirm } from '../../../interactions/conversationInteractions';
+import { handleAcceptConversationRequestWithoutConfirm } from '../../conversations/conversationRequestUtils';
+// getCallMediaPermissionsSettings reads a UI setting (Electron media permissions).
+// In Node.js/library mode calling is not supported; in the renderer the real function is
+// loaded via a variable-path require so TypeScript does not pull the component into the
+// library compilation graph.
+function getCallMediaPermissionsSettings(): boolean {
+  if (process.type !== 'renderer') return false;
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const _p = '../../../components/settings/SessionSettings';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/no-dynamic-require
+  return (require(_p) as any).getCallMediaPermissionsSettings();
+}
 import { READ_MESSAGE_STATE } from '../../../models/conversationAttributes';
 import { SnodeNamespaces } from '../../apis/snode_api/namespaces';
 import { DURATION } from '../../constants';

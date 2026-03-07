@@ -20,21 +20,28 @@
   "include": [
     "client/**/*.ts",
     "client/**/*.d.ts",
-    // Missing type declarations needed by transitively-included UI components
-    "ts/mic-recorder-to-mp3.d.ts",
     "ts/session/**/*.ts",
     "ts/session/**/*.tsx",
     "ts/receiver/**/*.ts",
     "ts/models/**/*.ts",
     "ts/data/**/*.ts",
-    "ts/node/**/*.ts",
-    "ts/util/**/*.ts",
-    "ts/util/**/*.tsx",
+    // ts/node/**/*.ts intentionally removed: the broad glob included Electron-only files
+    // (tray_icon, spell_check, permissions, etc.) that are not needed by the library.
+    // Files actually imported by library code (sql.ts, dbVacuumManager.ts, etc.) are
+    // still compiled via transitive imports — no explicit listing needed.
+    // ts/util/**/*.ts intentionally removed: the broad glob included UI-only util files
+    // (attachmentsUtil, accountManager, timer, theme, ctaHistory) that import from
+    // ts/components/ and ts/themes/. All util files actually used by the library
+    // are still compiled via transitive imports from session/, models/, receiver/ etc.
     "ts/shared/**/*.ts",
     "ts/types/**/*.ts",
     "ts/protobuf/**/*.ts",
     "ts/OS.ts",
     "ts/webworker/**/*.ts",
+    // Pure-enum interaction types needed by ts/models/ (no React/Electron imports)
+    "ts/interactions/types.ts",
+    // Clean avatar-upload util needed by AvatarReuploadJob (no React/Electron imports)
+    "ts/interactions/avatar-interactions/nts-avatar-interactions.ts",
     // Only the duck files that backend code imports action creators from
     "ts/state/ducks/conversations.ts",
     "ts/state/ducks/metaGroups.ts",
@@ -43,7 +50,8 @@
     "ts/state/ducks/user.ts",
     "ts/state/ducks/userGroups.ts",
     "ts/state/ducks/proBackendData.ts",
-    "ts/state/ducks/modalDialog.tsx",
+    // modalDialog.tsx removed: imports React and is only used by ts/interactions/ (excluded),
+    // not by any backend session/models code. Toast.tsx uses dynamic require for it.
     "ts/state/ducks/releasedFeatures.ts",
     "ts/state/ducks/types/**/*.ts"
   ],
@@ -58,6 +66,18 @@
     "ts/mains/**",
     "ts/svgs/**",
     "ts/interactions/**",
+    // keyboardShortcuts.ts imports React event types — UI-only, not needed by library
+    "ts/util/keyboardShortcuts.ts",
+    // UI-only util files that import from ts/components/ or ts/themes/
+    "ts/util/index.ts",
+    "ts/util/attachment/attachmentsUtil.ts",
+    "ts/util/accountManager.ts",
+    "ts/util/timer.ts",
+    "ts/util/theme.ts",
+    "ts/util/ctaHistory.ts",
+    // Ambient .d.ts files that import from themes/ or updater/; replaced by client/lib/ versions
+    "ts/window.d.ts",
+    "ts/react.d.ts",
     "ts/state/createStore.ts",
     "ts/state/reducer.ts",
     "ts/state/selectors/**",

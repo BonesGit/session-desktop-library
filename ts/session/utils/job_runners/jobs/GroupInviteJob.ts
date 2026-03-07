@@ -18,7 +18,9 @@ import {
   RunJobResult,
 } from '../PersistedJob';
 import { LibSessionUtil } from '../../libsession/libsession_utils';
-import { showUpdateGroupMembersByConvoId } from '../../../../interactions/conversationInteractions';
+// showUpdateGroupMembersByConvoId is a pure UI action (shows a dialog).
+// It is loaded dynamically in renderer mode only so TypeScript does not pull
+// conversationInteractions.ts (and its React component deps) into the library build.
 import { ConvoHub } from '../../../conversations';
 import { MessageSender } from '../../../sending';
 import { NetworkTime } from '../../../../util/NetworkTime';
@@ -92,7 +94,11 @@ function displayFailedInvitesForGroup(groupPk: GroupPubkeyType) {
     return;
   }
   const onToastClick = () => {
-    void showUpdateGroupMembersByConvoId(groupPk);
+    if (process.type === 'renderer') {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-dynamic-require, @typescript-eslint/no-explicit-any
+      const _p = '../../../../interactions/conversationInteractions';
+      void (require(_p) as any).showUpdateGroupMembersByConvoId(groupPk);
+    }
   };
   const count = thisGroupFailures.failedMembers.length;
   const groupName = ConvoHub.use().get(groupPk)?.getRealSessionUsername() || tr('unknown');

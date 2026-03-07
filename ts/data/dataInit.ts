@@ -1,4 +1,7 @@
-import { ipcRenderer } from 'electron';
+import type { IpcRenderer } from 'electron';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const ipcRenderer: IpcRenderer =
+  process.type === 'renderer' ? require('electron').ipcRenderer : (null as any);
 import { channels } from './channels';
 import { ConfigDumpData } from './configDump/configDump';
 

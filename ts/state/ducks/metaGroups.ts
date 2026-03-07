@@ -38,7 +38,8 @@ import {
   MetaGroupWrapperActions,
   UserGroupsWrapperActions,
 } from '../../webworker/workers/browser/libsession_worker_interface';
-import { StateType } from '../reducer';
+// StateType removed to avoid pulling in reducer.ts and its component dependencies.
+// Using 'any' cast for getState() calls below.
 import { openConversationWithMessages } from './conversations';
 import { ConversationTypeEnum } from '../../models/types';
 import { NetworkTime } from '../../util/NetworkTime';
@@ -49,7 +50,11 @@ import {
   WithFromMemberLeftMessage,
   WithRemoveMembers,
 } from '../../session/types/with';
-import { updateEditProfilePictureModal, updateConversationDetailsModal } from './modalDialog';
+const _mgMdPath = './modalDialog';
+const updateEditProfilePictureModal: (arg: any) => any =
+  process.type === 'renderer' ? (require(_mgMdPath) as any).updateEditProfilePictureModal : () => ({});
+const updateConversationDetailsModal: (arg: any) => any =
+  process.type === 'renderer' ? (require(_mgMdPath) as any).updateConversationDetailsModal : () => ({});
 import { tr } from '../../localization/localeTools';
 import { type GroupMemberGetRedux, makeGroupMemberGetRedux } from './types/groupReduxTypes';
 import { uploadFileToFsWithOnionV4 } from '../../session/apis/file_server_api/FileServerApi';
@@ -304,7 +309,7 @@ const handleUserGroupUpdate = createAsyncThunk(
   'group/handleUserGroupUpdate',
   async (userGroup: UserGroupsGet, payloadCreator): Promise<GroupDetailsUpdate> => {
     // if we already have a state for that group here, it means that group was already init, and the data should come from the groupInfos after.
-    const state = payloadCreator.getState() as StateType;
+    const state = payloadCreator.getState() as any;
     const groupPk = userGroup.pubkeyHex;
     if (state.groups.infos[groupPk] && state.groups.members[groupPk]) {
       const infos = await MetaGroupWrapperActions.infoGet(groupPk);
@@ -1235,7 +1240,7 @@ const currentDeviceGroupMembersChange = createAsyncThunk(
     },
     payloadCreator
   ): Promise<GroupDetailsUpdate> => {
-    const state = payloadCreator.getState() as StateType;
+    const state = payloadCreator.getState() as any;
     if (!state.groups.infos[groupPk] || !state.groups.members[groupPk]) {
       throw new PreConditionFailed(
         'currentDeviceGroupMembersChange group not present in redux slice'
@@ -1279,7 +1284,7 @@ const triggerDeleteMsgBeforeNow = createAsyncThunk(
     },
     payloadCreator
   ): Promise<void> => {
-    const state = payloadCreator.getState() as StateType;
+    const state = payloadCreator.getState() as any;
     if (!state.groups.infos[groupPk]) {
       throw new PreConditionFailed('triggerDeleteMsgBeforeNow group not present in redux slice');
     }
@@ -1342,7 +1347,7 @@ const handleMemberLeftMessage = createAsyncThunk(
     },
     payloadCreator
   ): Promise<GroupDetailsUpdate> => {
-    const state = payloadCreator.getState() as StateType;
+    const state = payloadCreator.getState() as any;
     if (!state.groups.infos[groupPk] || !state.groups.members[groupPk]) {
       throw new PreConditionFailed(
         'currentDeviceGroupMembersChange group not present in redux slice'
@@ -1378,7 +1383,7 @@ const inviteResponseReceived = createAsyncThunk(
     },
     payloadCreator
   ): Promise<GroupDetailsUpdate> => {
-    const state = payloadCreator.getState() as StateType;
+    const state = payloadCreator.getState() as any;
     if (!state.groups.infos[groupPk] || !state.groups.members[groupPk]) {
       throw new PreConditionFailed('inviteResponseReceived group but not present in redux slice');
     }
@@ -1432,7 +1437,7 @@ const currentDeviceGroupNameChange = createAsyncThunk(
     },
     payloadCreator
   ): Promise<GroupDetailsUpdate> => {
-    const state = payloadCreator.getState() as StateType;
+    const state = payloadCreator.getState() as any;
     if (!state.groups.infos[groupPk] || !state.groups.members[groupPk]) {
       throw new PreConditionFailed('currentDeviceGroupNameChange group not present in redux slice');
     }
@@ -1461,7 +1466,7 @@ const currentDeviceGroupAvatarChange = createAsyncThunk(
     },
     payloadCreator
   ): Promise<GroupDetailsUpdate> => {
-    const state = payloadCreator.getState() as StateType;
+    const state = payloadCreator.getState() as any;
     if (!state.groups.infos[groupPk] || !state.groups.members[groupPk]) {
       throw new PreConditionFailed(
         'currentDeviceGroupAvatarChange group not present in redux slice'
@@ -1483,7 +1488,7 @@ const currentDeviceGroupAvatarChange = createAsyncThunk(
 const currentDeviceGroupAvatarRemoval = createAsyncThunk(
   'group/currentDeviceGroupAvatarRemoval',
   async ({ groupPk }: WithGroupPubkey, payloadCreator): Promise<GroupDetailsUpdate> => {
-    const state = payloadCreator.getState() as StateType;
+    const state = payloadCreator.getState() as any;
     if (!state.groups.infos[groupPk] || !state.groups.members[groupPk]) {
       throw new PreConditionFailed(
         'currentDeviceGroupAvatarRemoval group not present in redux slice'

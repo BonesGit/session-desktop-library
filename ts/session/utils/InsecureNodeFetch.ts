@@ -4,7 +4,7 @@ import nodeFetch, {
   type RequestInit,
   type Response,
 } from 'node-fetch';
-import { ReduxOnionSelectors } from '../../state/selectors/onions';
+import { ReduxOnionSelectors } from '../state/storeAccessors';
 import { ERROR_CODE_NO_CONNECT } from '../apis/snode_api/SNodeAPI';
 import { getFeatureFlag } from '../../state/ducks/types/releasedFeaturesReduxTypes';
 import { updateIsOnline } from '../../state/ducks/onions';

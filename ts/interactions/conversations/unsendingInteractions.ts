@@ -1,11 +1,16 @@
 import { GroupPubkeyType, PubkeyType } from 'libsession_util_nodejs';
 import { compact, isEmpty } from 'lodash';
+import {
+  deleteMessagesFromSwarmOnly,
+  deleteMessagesFromSwarmAndCompletelyLocally,
+  deleteMessagesFromSwarmAndMarkAsDeletedLocally,
+  deleteMessagesLocallyOnly,
+} from '../../session/conversations/messageDeleteUtils';
 import { SessionButtonColor } from '../../components/basic/SessionButton';
 import { Data } from '../../data/data';
 import { ConversationModel } from '../../models/conversation';
 import { MessageModel } from '../../models/message';
 import { deleteSogsMessageByServerIds } from '../../session/apis/open_group_api/sogsv3/sogsV3DeleteMessages';
-import { SnodeAPI } from '../../session/apis/snode_api/SNodeAPI';
 import { SnodeNamespaces } from '../../session/apis/snode_api/namespaces';
 import { ConvoHub } from '../../session/conversations';
 import { getSodiumRenderer } from '../../session/crypto';
@@ -15,7 +20,6 @@ import { PubKey } from '../../session/types';
 import { ToastUtils, UserUtils } from '../../session/utils';
 import { closeRightPanel, resetSelectedMessageIds } from '../../state/ducks/conversations';
 import { updateConfirmModal } from '../../state/ducks/modalDialog';
-import { ed25519Str } from '../../session/utils/String';
 
 import { UserGroupsWrapperActions } from '../../webworker/workers/browser/libsession_worker_interface';
 import { NetworkTime } from '../../util/NetworkTime';
@@ -170,149 +174,13 @@ function getMessageHashes(messages: Array<MessageModel>) {
   );
 }
 
-function isStringArray(value: unknown): value is Array<string> {
-  return Array.isArray(value) && value.every(val => typeof val === 'string');
-}
-
-/**
- * Do a single request to the swarm with all the message hashes to delete from the swarm.
- *
- * It does not delete anything locally.
- *
- * Returns true if no errors happened, false in an error happened
- */
-export async function deleteMessagesFromSwarmOnly(
-  messages: Array<MessageModel> | Array<string>,
-  pubkey: PubkeyType | GroupPubkeyType
-) {
-  const deletionMessageHashes = isStringArray(messages) ? messages : getMessageHashes(messages);
-
-  try {
-    if (isEmpty(messages)) {
-      return false;
-    }
-
-    if (!deletionMessageHashes.length) {
-      window.log?.warn(
-        'deleteMessagesFromSwarmOnly: We do not have hashes for some of those messages'
-      );
-      return false;
-    }
-    const hashesAsSet = new Set(deletionMessageHashes);
-    if (PubKey.is03Pubkey(pubkey)) {
-      return await SnodeAPI.networkDeleteMessagesForGroup(hashesAsSet, pubkey);
-    }
-    return await SnodeAPI.networkDeleteMessageOurSwarm(hashesAsSet, pubkey);
-  } catch (e) {
-    window.log?.error(
-      `deleteMessagesFromSwarmOnly: Error deleting message from swarm of ${ed25519Str(pubkey)}, hashes: ${deletionMessageHashes}`,
-      e
-    );
-    return false;
-  }
-}
-
-/**
- * Delete the messages from the swarm with an unsend request and if it worked, delete those messages locally.
- * If an error happened, we just return false, Toast an error, and do not remove the messages locally at all.
- */
-export async function deleteMessagesFromSwarmAndCompletelyLocally(
-  conversation: ConversationModel,
-  messages: Array<MessageModel>
-) {
-  // If this is a private chat, we can only delete messages on our own swarm, so use our "side" of the conversation
-  const pubkey = conversation.isPrivate() ? UserUtils.getOurPubKeyStrFromCache() : conversation.id;
-  if (!PubKey.is03Pubkey(pubkey) && !PubKey.is05Pubkey(pubkey)) {
-    throw new Error('deleteMessagesFromSwarmAndCompletelyLocally needs a 03 or 05 pk');
-  }
-  if (PubKey.is05Pubkey(pubkey) && pubkey !== UserUtils.getOurPubKeyStrFromCache()) {
-    window.log.warn(
-      'deleteMessagesFromSwarmAndCompletelyLocally with 05 pk can only delete for ourself'
-    );
-    return;
-  }
-  // LEGACY GROUPS -- we cannot delete on the swarm (just unsend which is done separately)
-  if (conversation.isClosedGroup() && PubKey.is05Pubkey(pubkey)) {
-    window.log.info('Cannot delete message from a closed group swarm, so we just complete delete.');
-    await deleteMessagesLocallyOnly({ conversation, messages, deletionType: 'complete' });
-    return;
-  }
-  window.log.info(
-    'Deleting from swarm of ',
-    ed25519Str(pubkey),
-    ' hashes: ',
-    messages.map(m => m.get('messageHash'))
-  );
-  const deletedFromSwarm = await deleteMessagesFromSwarmOnly(messages, pubkey);
-  if (!deletedFromSwarm) {
-    window.log.warn(
-      'deleteMessagesFromSwarmAndCompletelyLocally: some messages failed to be deleted. Maybe they were already deleted?'
-    );
-  }
-  await deleteMessagesLocallyOnly({ conversation, messages, deletionType: 'complete' });
-}
-
-/**
- * Delete the messages from the swarm with an unsend request and if it worked, mark those messages locally as deleted but do not remove them.
- * If an error happened, we still mark the message locally as deleted.
- */
-export async function deleteMessagesFromSwarmAndMarkAsDeletedLocally(
-  conversation: ConversationModel,
-  messages: Array<MessageModel>
-) {
-  // legacy groups cannot delete messages on the swarm (just "unsend")
-  if (conversation.isClosedGroup() && PubKey.is05Pubkey(conversation.id)) {
-    window.log.info(
-      'Cannot delete messages from a legacy closed group swarm, so we just markDeleted.'
-    );
-    await deleteMessagesLocallyOnly({ conversation, messages, deletionType: 'markDeleted' });
-
-    return;
-  }
-
-  // we can only delete messages on the swarm when they are on our own swarm, or it is a groupv2 that we are the admin off
-  const pubkeyToDeleteFrom = PubKey.is03Pubkey(conversation.id)
-    ? conversation.id
-    : UserUtils.getOurPubKeyStrFromCache();
-
-  // if this is a groupv2 and we don't have the admin key, it will fail and return false.
-  const deletedFromSwarm = await deleteMessagesFromSwarmOnly(messages, pubkeyToDeleteFrom);
-  if (!deletedFromSwarm) {
-    window.log.warn(
-      'deleteMessagesFromSwarmAndMarkAsDeletedLocally: some messages failed to be deleted but still removing the messages content... '
-    );
-  }
-  await deleteMessagesLocallyOnly({ conversation, messages, deletionType: 'markDeleted' });
-}
-
-/**
- * Deletes a message completely or mark it as deleted only. Does not interact with the swarm at all
- * @param message Message to delete
- * @param deletionType 'complete' means completely delete the item from the database, markDeleted means empty the message content but keep an entry
- */
-async function deleteMessagesLocallyOnly({
-  conversation,
-  messages,
-  deletionType,
-}: WithLocalMessageDeletionType & {
-  conversation: ConversationModel;
-  messages: Array<MessageModel>;
-}) {
-  for (let index = 0; index < messages.length; index++) {
-    const message = messages[index];
-    if (deletionType === 'complete') {
-      // remove the message from the database
-      // eslint-disable-next-line no-await-in-loop
-      await conversation.removeMessage(message.id);
-    } else {
-      // just mark the message as deleted but still show in conversation
-      // eslint-disable-next-line no-await-in-loop
-      await message.markAsDeleted();
-    }
-  }
-
-  conversation.updateLastMessage();
-}
+// Moved to ts/session/conversations/messageDeleteUtils.ts for library build isolation.
+// Re-exported here for backward-compatibility with the desktop app.
+export {
+  deleteMessagesFromSwarmOnly,
+  deleteMessagesFromSwarmAndCompletelyLocally,
+  deleteMessagesFromSwarmAndMarkAsDeletedLocally,
+};
 
 /**
  * Send an UnsendMessage synced message so our devices removes those messages locally,

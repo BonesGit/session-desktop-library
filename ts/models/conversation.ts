@@ -22,7 +22,7 @@ import { ConvoHub } from '../session/conversations';
 import { ClosedGroupV2VisibleMessage } from '../session/messages/outgoing/visibleMessage/ClosedGroupVisibleMessage';
 import { PubKey } from '../session/types';
 import { ToastUtils, UserUtils } from '../session/utils';
-import { BlockedNumberController } from '../util';
+import { BlockedNumberController } from '../util/blockedNumberController';
 import { MessageModel } from './message';
 import { MessageAttributesOptionals, type MessageAttributes } from './messageType';
 
@@ -54,7 +54,7 @@ import {
 import {
   ReplyingToMessageProps,
   SendMessageType,
-} from '../components/conversation/composition/CompositionBox';
+} from '../types/messageCompositionTypes';
 import { OpenGroupData } from '../data/opengroups';
 import { SettingsKey } from '../data/settings-key';
 import {
@@ -106,26 +106,24 @@ import {
 import { ReadReceiptMessage } from '../session/messages/outgoing/controlMessage/receipt/ReadReceiptMessage';
 import { PreConditionFailed } from '../session/utils/errors';
 import { LibSessionUtil } from '../session/utils/libsession/libsession_utils';
-import { ReduxSogsRoomInfos } from '../state/ducks/sogsRoomInfo';
+import { ReduxSogsRoomInfos } from '../session/state/storeAccessors';
 import {
   selectLibGroupAdminsOutsideRedux,
   selectLibGroupMembersOutsideRedux,
   selectLibGroupNameOutsideRedux,
-} from '../state/selectors/groups';
-import {
   getCanWriteOutsideRedux,
   getModeratorsOutsideRedux,
   getRoomDescriptionOutsideRedux,
   getSubscriberCountOutsideRedux,
-} from '../state/selectors/sogsRoomInfo'; // decide it it makes sense to move this to a redux slice?
+} from '../session/state/storeAccessors';
 
-import { handleAcceptConversationRequestWithoutConfirm } from '../interactions/conversationInteractions';
+import { handleAcceptConversationRequestWithoutConfirm } from '../session/conversations/conversationRequestUtils';
 import { DisappearingMessages } from '../session/disappearing_messages';
 import { GroupUpdateInfoChangeMessage } from '../session/messages/outgoing/controlMessage/group_v2/to_group/GroupUpdateInfoChangeMessage';
 import { FetchMsgExpirySwarm } from '../session/utils/job_runners/jobs/FetchMsgExpirySwarmJob';
 import { GroupSync } from '../session/utils/job_runners/jobs/GroupSyncJob';
 import { UpdateMsgExpirySwarm } from '../session/utils/job_runners/jobs/UpdateMsgExpirySwarmJob';
-import { getLibGroupKickedOutsideRedux } from '../state/selectors/userGroups';
+import { getLibGroupKickedOutsideRedux } from '../session/state/storeAccessors';
 import {
   MetaGroupWrapperActions,
   MultiEncryptWrapperActions,
@@ -140,7 +138,7 @@ import { MessageQueue } from '../session/sending';
 import type { WithMessageHashOrNull } from '../session/types/with';
 import { Model } from './models';
 import LIBSESSION_CONSTANTS from '../session/utils/libsession/libsession_constants';
-import { ReduxOnionSelectors } from '../state/selectors/onions';
+import { ReduxOnionSelectors } from '../session/state/storeAccessors';
 import { tr, tStripped } from '../localization/localeTools';
 import { getFeatureFlag } from '../state/ducks/types/releasedFeaturesReduxTypes';
 import type {

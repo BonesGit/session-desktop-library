@@ -3,7 +3,7 @@ import type { ReactNode, JSX } from 'react';
 import { ConvoHub } from '../../session/conversations';
 import { isUsAnySogsFromCache } from '../../session/apis/open_group_api/sogsv3/knownBlindedkeys';
 import { PubKey } from '../../session/types';
-import { RenderTextCallbackType } from '../../types/Util';
+import { RenderTextCallbackType } from '../../types/UITypes';
 import { tr } from '../../localization/localeTools';
 
 interface MentionProps {
