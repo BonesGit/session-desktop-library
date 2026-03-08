@@ -125,7 +125,10 @@ async function run() {
 
         let replyBody = `Got it: ${msg.body ?? ''}`;
         if (hasNonImageAttachment) replyBody += ' (attachment file received)';
-        const replyOpts = downloadedImages.length > 0 ? { attachments: downloadedImages } : {};
+        const replyOpts = {
+          quote: { id: msg.id, author: msg.source, text: msg.body ?? '' },
+          ...(downloadedImages.length > 0 ? { attachments: downloadedImages } : {}),
+        };
         try {
           await client.sendMessage(msg.source, replyBody, replyOpts);
           console.log(`   → replied to ${msg.source}${downloadedImages.length > 0 ? ` with ${downloadedImages.length} image(s)` : ''}`);

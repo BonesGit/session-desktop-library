@@ -168,7 +168,10 @@ async function run() {
         seenIds.add(msg.id);
         let replyBody = `Got it: ${msg.body ?? ''}`;
         if (hasNonImageAttachment) replyBody += ' (attachment file received)';
-        const replyOpts = downloadedImages.length > 0 ? { attachments: downloadedImages } : {};
+        const replyOpts = {
+          quote: { id: msg.id, author: msg.source, text: msg.body ?? '' },
+          ...(downloadedImages.length > 0 ? { attachments: downloadedImages } : {}),
+        };
         await client.sendMessage(groupId, replyBody, replyOpts);
         console.log(`   → replied to group${downloadedImages.length > 0 ? ` with ${downloadedImages.length} image(s)` : ''}`);
       }

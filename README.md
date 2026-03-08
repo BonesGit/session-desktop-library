@@ -4,7 +4,9 @@
 
 This is a fork of Session Desktop with an added build to produce a library to run the desktop headless. For use by the claws of the world. Used AI to help separate frontend from backend with minimal changes to the core desktop app portion. Most UI and app logic is already nicely decoupled but hit a few snags that took more changes to desktop app then I liked.
 
-**v0.1.5** - first build that works without pulling in all the UI dependencies.
+### Release Notes
+- **v0.1.6** - fixed quoted replies
+- **v0.1.5** - first build that works without pulling in all the UI dependencies.
 
 ### TODO
 - Still to many changes to the core desktop app code. To much coupling between frontend and backend code that needed tweaking to just get something working. Needs better architecture so I can touch less desktop app code.
@@ -17,13 +19,13 @@ This is a fork of Session Desktop with an added build to produce a library to ru
 - Group chats (GroupV2) — create groups, send messages, add/remove members, leave groups
 - Conversation history — list all conversations, fetch message history with pagination
 - Attachments — send files/images with messages; download and decrypt received attachments
-- Contact management — accept contact requests, block/unblock contacts __(untested)__
-- Conversation updates — real-time async iterator stream for metadata changes __(untested)__
-- Profile — set display name __(untested)__
-- Disappearing messages — send with configurable expiry timer __(untested)__
-- Quoted replies — send messages quoting a prior message __(untested)__
+- Quoted replies — send messages quoting a prior message
 - Linked device sync — group creation pushes config to user's own swarm so other devices see it
 - Typing Indicator - Can set whether or not the user is typing, to show the typing indicator
+- Contact management — accept contact requests, block/unblock contacts <span style="color:red">__(untested)__</span>
+- Conversation updates — real-time async iterator stream for metadata changes <span style="color:red">__(untested)__</span>
+- Profile — set display name <span style="color:red">__(untested)__</span>
+- Disappearing messages — send with configurable expiry timer <span style="color:red">__(untested)__</span>
 
 [SKILL.md](client/SKILL.md)  
 [See API docs](client/SKILL.md#messaging)  

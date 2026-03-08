@@ -20,7 +20,7 @@ export interface LibraryState {
     snodePaths: Array<Array<{ ip: string; port: number; pubkey_ed25519: string; pubkey_x25519: string }>>;
     isOnline: boolean;
   };
-  conversations: AnyRecord;
+  conversations: AnyRecord & { quotedMessages: Array<AnyRecord> };
   // settings.settingsBools is read by state selectors (e.g. getShowRecoveryPhrasePrompt).
   settings: {
     settingsBools: Record<string, boolean | undefined>;
@@ -57,7 +57,7 @@ export function getInitialLibraryState(): LibraryState {
     // Selectors that call Object.values() / Object.keys() need non-null objects.
     conversations: {
       conversationLookup: {},
-      quotedMessages: {},
+      quotedMessages: [],
       showMessageRequestBanner: false,
       messages: [],
       messageInfoId: null,

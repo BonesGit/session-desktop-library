@@ -100,7 +100,7 @@ await client.sendMessage('05abc...', 'See this', {
 
 // With quote
 await client.sendMessage('05abc...', 'Good point', {
-  quote: { id: msg.timestamp, author: msg.source, text: msg.body },
+  quote: { id: msg.id, author: msg.source, text: msg.body },
 });
 
 // With disappearing timer (seconds)
@@ -264,7 +264,7 @@ Or use the async iterators (`client.messages()`, `client.conversations()`) for a
 ### `Message`
 ```typescript
 {
-  id: string;
+  id: string;               // sent_at network timestamp as string (use as quote.id)
   conversationId: string;
   source: string;            // sender's Session ID
   body?: string;

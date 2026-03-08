@@ -405,6 +405,7 @@ export class SessionClient extends EventEmitter {
           id: options.quote.id,
           author: options.quote.author,
           text: options.quote.text,
+          timestamp: Number(options.quote.id),
           attachments: [] as AnyValue[],
           referencedMessageNotFound: false,
         }
@@ -890,7 +891,7 @@ export class SessionClient extends EventEmitter {
     );
 
     return {
-      id: m.id as string,
+      id: String(m.get('sent_at') ?? m.id),
       conversationId: m.get('conversationId') as string,
       source: m.get('source') as string,
       body: m.get('body') as string | undefined,
