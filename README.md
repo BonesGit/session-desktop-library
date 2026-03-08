@@ -4,8 +4,10 @@
 
 This is a fork of Session Desktop with an added build to produce a library to run the desktop headless. For use by the claws of the world. Used AI to help separate frontend from backend with minimal changes to the core desktop app portion. Most UI and app logic is already nicely decoupled but hit a few snags that took more changes to desktop app then I liked.
 
+https://github.com/BonesGit/session-desktop-library  
+npm package: @bonesgit/session-desktop-library
+
 ### Release Notes
-@bonesgit/session-desktop-library
 - **v0.1.6** - fixed quoted replies
 - **v0.1.5** - first build that works without pulling in all the UI dependencies.
 
