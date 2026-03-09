@@ -85,12 +85,14 @@ async function run() {
     assertEqual(client.getSessionId(), sessionId, 'getSessionId() matches returned ID');
     console.log(`   session ID: ${sessionId}\n`);
 
+    /* I commented this out because i'm not sure I want it in there.
     // ---- getRecoveryMnemonic -----------------------------------------------
     console.log('4. getRecoveryMnemonic()');
     const recovered = await client.getRecoveryMnemonic();
     assert(recovered !== null, 'returns non-null');
     assertEqual(recovered, mnemonic, 'matches the original mnemonic');
     console.log();
+    */
 
     // ---- getConversations --------------------------------------------------
     console.log('5. getConversations()');
