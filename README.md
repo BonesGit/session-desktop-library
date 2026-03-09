@@ -8,6 +8,7 @@ https://github.com/BonesGit/session-desktop-library
 npm package: @bonesgit/session-desktop-library
 
 ### Release Notes
+- **v0.1.7** - added group promotion to admin
 - **v0.1.6** - fixed quoted replies
 - **v0.1.5** - first build that works without pulling in all the UI dependencies.
 
@@ -19,7 +20,7 @@ npm package: @bonesgit/session-desktop-library
 - Account management — generate mnemonic, create new account, restore from mnemonic, get Session ID
 - 1:1 messaging — send text messages to any Session ID
 - Receive messages — real-time async iterator stream (for await (const msg of client.messages()))
-- Group chats (GroupV2) — create groups, send messages, add/remove members, leave groups
+- Group chats (GroupV2) — create groups, send messages, add/remove members, promote to admin, leave groups
 - Conversation history — list all conversations, fetch message history with pagination
 - Attachments — send files/images with messages; download and decrypt received attachments
 - Quoted replies — send messages quoting a prior message

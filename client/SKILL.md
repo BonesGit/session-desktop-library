@@ -190,6 +190,18 @@ await client.removeGroupMembers(groupId, ['05exMember...']);
 await client.removeGroupMembers(groupId, ['05exMember...'], { alsoRemoveMessages: true });
 ```
 
+### `await client.promoteGroupMembers(groupId, memberIds): Promise<void>`
+Promote one or more members to admin in a GroupV2 group you admin.
+Sends a signed broadcast to the group swarm and a direct invite to each promoted member
+containing the group's identity seed (required for them to exercise admin capabilities).
+
+```typescript
+await client.promoteGroupMembers(groupId, ['05memberA...', '05memberB...']);
+```
+
+> **Note:** The Session protocol does not support demotion — once promoted, admins cannot
+> be demoted or removed from the group.
+
 ### `await client.leaveGroup(groupId): Promise<void>`
 Leave a group (or delete it locally if state is broken). Handles GroupV2 and legacy GroupV1.
 Retries automatically if encryption keys are missing (broken group state).

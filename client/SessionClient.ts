@@ -697,6 +697,121 @@ export class SessionClient extends EventEmitter {
     await thunkFn(stubStore.dispatch, stubStore.getState, undefined);
   }
 
+  /**
+   * Promote one or more group members to admin in a GroupV2 group.
+   * You must be an admin (hold the group secret key) to call this.
+   *
+   * Note: The Session protocol does not support demotion — once promoted,
+   * admins cannot be demoted or removed from the group (by protocol design).
+   *
+   * @param groupId   - The group public key (starts with '03')
+   * @param memberIds - Session IDs of members to promote
+   */
+  async promoteGroupMembers(groupId: string, memberIds: string[]): Promise<void> {
+    this._assertInitialized();
+    if (!this._sessionId) {
+      throw new Error('Not registered — call createAccount() or restoreAccount() first');
+    }
+    if (!memberIds.length) {
+      throw new Error('memberIds cannot be empty');
+    }
+
+    const [
+      { uniq, isEmpty },
+      { ConvoHub },
+      { UserGroupsWrapperActions },
+      { NetworkTime },
+      { getOurPubKeyStrFromCache },
+      { ClosedGroup },
+      { GroupUpdateMessageFactory },
+      { MessageSender },
+      { StoreGroupRequestFactory },
+      { timeoutWithAbort },
+      { DURATION },
+      { GroupInvite },
+    ] = await Promise.all([
+      import('lodash'),
+      import('../ts/session/conversations'),
+      import('../ts/webworker/workers/browser/libsession_worker_interface'),
+      import('../ts/util/NetworkTime'),
+      import('../ts/session/utils/User') as any,
+      import('../ts/session/group/closed-group'),
+      import('../ts/session/messages/message_factory/group/groupUpdateMessageFactory'),
+      import('../ts/session/sending'),
+      import('../ts/session/apis/snode_api/factories/StoreGroupRequestFactory'),
+      import('../ts/session/utils/Promise'),
+      import('../ts/session/constants'),
+      import('../ts/session/utils/job_runners/jobs/GroupInviteJob'),
+    ]);
+
+    const convo: AnyValue = ConvoHub.use().get(groupId);
+    if (!convo) {
+      throw new Error(`Group not found: ${groupId}`);
+    }
+
+    const groupInWrapper: AnyValue = await UserGroupsWrapperActions.getGroup(groupId as AnyValue);
+    if (!groupInWrapper || !groupInWrapper.secretKey || isEmpty(groupInWrapper.secretKey)) {
+      throw new Error(`Not an admin of group ${groupId} (no secret key found)`);
+    }
+
+    const membersHex: AnyValue = uniq(memberIds);
+    const sentAt = NetworkTime.now();
+    const us = getOurPubKeyStrFromCache();
+
+    const msgModel: AnyValue = await (ClosedGroup as AnyValue).addUpdateMessage({
+      diff: { type: 'promoted', promoted: membersHex },
+      expireUpdate: null,
+      sender: us,
+      sentAt,
+      convo,
+      markAlreadySent: false,
+      messageHash: null,
+    });
+
+    const groupMemberChange: AnyValue = await (GroupUpdateMessageFactory as AnyValue).getPromotedControlMessage({
+      adminSecretKey: groupInWrapper.secretKey,
+      convo,
+      groupPk: groupId,
+      promoted: membersHex,
+      createAtNetworkTimestamp: sentAt,
+      dbMessageIdentifier: msgModel.id,
+    });
+
+    if (!groupMemberChange) {
+      throw new Error('promoteGroupMembers: failed to build group change message');
+    }
+
+    const storeRequests: AnyValue = await (StoreGroupRequestFactory as AnyValue).makeGroupMessageSubRequest(
+      [groupMemberChange],
+      groupInWrapper
+    );
+
+    const controller = new AbortController();
+    const result: AnyValue = await (timeoutWithAbort as AnyValue)(
+      (MessageSender as AnyValue).sendEncryptedDataToSnode({
+        destination: groupId,
+        method: 'batch',
+        sortedSubRequests: storeRequests,
+        abortSignal: controller.signal,
+        allow401s: false,
+      }),
+      2 * (DURATION as AnyValue).MINUTES,
+      controller
+    );
+
+    if (result?.[0]?.code !== 200) {
+      throw new Error(`promoteGroupMembers: swarm rejected the change (code: ${result?.[0]?.code})`);
+    }
+
+    for (const member of membersHex) {
+      await (GroupInvite as AnyValue).addJob({
+        groupPk: groupId,
+        member,
+        inviteAsAdmin: true,
+      });
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Attachments
   // ---------------------------------------------------------------------------

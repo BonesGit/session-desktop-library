@@ -143,37 +143,55 @@ async function run() {
       console.log(`   body    : ${msg.body ?? '(no body)'}`);
       console.log(`   time    : ${new Date(msg.timestamp).toISOString()}`);
 
-      // Download attachments and track images to echo back
-      const downloadedImages = [];
-      let hasNonImageAttachment = false;
-      if (msg.attachments?.length) {
-        console.log(`   attach  : ${msg.attachments.length} attachment(s)`);
-        for (const att of msg.attachments) {
-          try {
-            const localPath = await client.downloadAttachment(att, DOWNLOADS_PATH);
-            console.log(`   ↳ downloaded: ${att.fileName ?? att.contentType} → ${localPath}`);
-            if (att.contentType?.startsWith('image/')) {
-              downloadedImages.push({ path: localPath, contentType: att.contentType, fileName: att.fileName });
-            } else {
-              hasNonImageAttachment = true;
-            }
-          } catch (e) {
-            console.log(`   ↳ download failed: ${e.message}`);
-          }
-        }
-      }
-
-      // Reply back to the group (deduplicated by message ID)
+      // Ddeduplicated by message ID
       if (!seenIds.has(msg.id)) {
         seenIds.add(msg.id);
-        let replyBody = `Got it: ${msg.body ?? ''}`;
+
+        // Download attachments and track images to echo back
+        const downloadedImages = [];
+        let hasNonImageAttachment = false;
+        if (msg.attachments?.length) {
+          console.log(`   attach  : ${msg.attachments.length} attachment(s)`);
+          for (const att of msg.attachments) {
+            try {
+              const localPath = await client.downloadAttachment(att, DOWNLOADS_PATH);
+              console.log(`   ↳✅ downloaded: ${att.fileName ?? att.contentType} → ${localPath}`);
+              if (att.contentType?.startsWith('image/')) {
+                downloadedImages.push({ path: localPath, contentType: att.contentType, fileName: att.fileName });
+              } else {
+                hasNonImageAttachment = true;
+              }
+            } catch (e) {
+              console.log(`   ↳❌ download failed: ${e.message}`);
+            }
+          }
+        }
+
+        // Promote sender if the message body contains the word "promote"
+        let promoted = '';
+        if (msg.body && msg.body.toLowerCase().includes('promote') && msg.source) {
+          console.log(`\n🔑 "promote" detected — promoting ${msg.source} to admin...`);
+          try {
+            await client.promoteGroupMembers(groupId, [msg.source]);
+            console.log(`   ↳✅ promoted ${msg.source} to admin`);
+            promoted = '✅ PROMOTED: ';
+          } catch (e) {
+            console.log(`   ↳❌ promotion failed: ${e.message}`);
+            promoted = '❌ PROMOTION FAILED: ';
+          }
+        } else {
+          console.log(`\n🪠 no "promote" keyword — not promoting ${msg.source}`);
+        }
+
+        // Reply back to the group
+        let replyBody = promoted + `Got it: ${msg.body ?? ''}`;
         if (hasNonImageAttachment) replyBody += ' (attachment file received)';
         const replyOpts = {
           quote: { id: msg.id, author: msg.source, text: msg.body ?? '' },
           ...(downloadedImages.length > 0 ? { attachments: downloadedImages } : {}),
         };
         await client.sendMessage(groupId, replyBody, replyOpts);
-        console.log(`   → replied to group${downloadedImages.length > 0 ? ` with ${downloadedImages.length} image(s)` : ''}`);
+        console.log(`✉️   → replied to group${downloadedImages.length > 0 ? ` with ${downloadedImages.length} image(s)` : ''}`);
       }
     }
   })();
