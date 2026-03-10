@@ -21,6 +21,7 @@ npm package: @bonesgit/session-desktop-library
 - 1:1 messaging — send text messages to any Session ID
 - Receive messages — real-time async iterator stream (for await (const msg of client.messages()))
 - Group chats (GroupV2) — create groups, send messages, add/remove members, promote to admin, leave groups
+- Emoji reactions — react to any message with an emoji (1:1 and GroupV2)
 - Conversation history — list all conversations, fetch message history with pagination
 - Attachments — send files/images with messages; download and decrypt received attachments
 - Quoted replies — send messages quoting a prior message

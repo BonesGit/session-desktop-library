@@ -447,6 +447,43 @@ export class SessionClient extends EventEmitter {
   }
 
   /**
+   * Send an emoji reaction to a message.
+   * Use `msg.dbId` (the raw database UUID) as the `messageDbId` argument.
+   *
+   * @param conversationId - Session ID or group pubkey the message belongs to
+   * @param messageDbId    - The `dbId` field from the Message object (NOT `msg.id`)
+   * @param emoji          - Emoji character to react with, e.g. '👍'
+   */
+  async sendReaction(conversationId: string, messageDbId: string, emoji: string): Promise<void> {
+    this._assertInitialized();
+
+    const [{ ConvoHub }, { Data }, userModule] = await Promise.all([
+      import('../ts/session/conversations'),
+      import('../ts/data/data'),
+      import('../ts/session/utils/User') as AnyValue,
+    ]);
+    const getOurPubKeyStrFromCache: AnyValue = (userModule as AnyValue).getOurPubKeyStrFromCache;
+
+    const convo: AnyValue = ConvoHub.use().get(conversationId);
+    if (!convo) {
+      throw new Error(`Conversation not found: ${conversationId}`);
+    }
+
+    const sourceMessage: AnyValue = await Data.getMessageById(messageDbId);
+    if (!sourceMessage) {
+      throw new Error(`Message not found: ${messageDbId}`);
+    }
+
+    const us = (getOurPubKeyStrFromCache as AnyValue)();
+    await convo.sendReaction(messageDbId, {
+      id: sourceMessage.get('sent_at') as number,
+      author: (sourceMessage.get('source') as string) || us,
+      emoji,
+      action: 0, // Action.REACT
+    });
+  }
+
+  /**
    * Async iterator that yields new incoming messages in real-time.
    *
    * @example
@@ -1007,6 +1044,7 @@ export class SessionClient extends EventEmitter {
 
     return {
       id: String(m.get('sent_at') ?? m.id),
+      dbId: m.id as string,
       conversationId: m.get('conversationId') as string,
       source: m.get('source') as string,
       body: m.get('body') as string | undefined,

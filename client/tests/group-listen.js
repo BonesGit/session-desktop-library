@@ -183,6 +183,14 @@ async function run() {
           console.log(`\n🪠 no "promote" keyword — not promoting ${msg.source}`);
         }
 
+        // React with a thumbs up
+        try {
+          await client.sendReaction(groupId, msg.dbId, '👍');
+          console.log(`   👍 reaction sent`);
+        } catch (e) {
+          console.log(`   ↳❌ reaction failed: ${e.message}`);
+        }
+
         // Reply back to the group
         let replyBody = promoted + `Got it: ${msg.body ?? ''}`;
         if (hasNonImageAttachment) replyBody += ' (attachment file received)';

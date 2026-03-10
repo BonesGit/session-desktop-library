@@ -111,6 +111,17 @@ await client.sendMessage('05abc...', 'Self-destructing', { expireTimer: 60 });
 - A 1:1 Session ID: `05` + 64 hex chars
 - A GroupV2 public key: `03` + 64 hex chars
 
+### `await client.sendReaction(conversationId, messageDbId, emoji): Promise<void>`
+React to a message with an emoji. Use `msg.dbId` (not `msg.id`) as the message identifier.
+
+```typescript
+for await (const msg of client.messages()) {
+  await client.sendReaction(msg.conversationId, msg.dbId, '👍');
+}
+```
+
+Works in 1:1 conversations and GroupV2 groups. Not supported in legacy GroupV1.
+
 ### `await client.getMessages(conversationId, options?): Promise<Message[]>`
 Get recent messages for a conversation, newest first.
 
@@ -277,6 +288,7 @@ Or use the async iterators (`client.messages()`, `client.conversations()`) for a
 ```typescript
 {
   id: string;               // sent_at network timestamp as string (use as quote.id)
+  dbId: string;             // raw database UUID (use as messageDbId in sendReaction())
   conversationId: string;
   source: string;            // sender's Session ID
   body?: string;

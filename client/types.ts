@@ -49,8 +49,10 @@ export interface QuotedMessage {
 }
 
 export interface Message {
-  /** Internal message ID */
+  /** Sent-at network timestamp as string — use as quote.id */
   id: string;
+  /** Raw database UUID — use this as the messageDbId argument to sendReaction() */
+  dbId: string;
   /** Conversation this message belongs to */
   conversationId: string;
   /** Session ID of the sender */
