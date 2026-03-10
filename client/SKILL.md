@@ -111,6 +111,15 @@ await client.sendMessage('05abc...', 'Self-destructing', { expireTimer: 60 });
 - A 1:1 Session ID: `05` + 64 hex chars
 - A GroupV2 public key: `03` + 64 hex chars
 
+**`SendMessageOptions`**
+```typescript
+{
+  attachments?: SendAttachmentOptions[];  // Files to attach (see SendAttachmentOptions)
+  quote?: QuotedMessage;                  // Message to reply to: { id, author, text }
+  expireTimer?: number;                   // Disappearing messages timer in seconds (0 = off)
+}
+```
+
 ### `await client.sendReaction(conversationId, messageDbId, emoji): Promise<void>`
 React to a message with an emoji. Use `msg.dbId` (not `msg.id`) as the message identifier.
 
@@ -127,6 +136,13 @@ Get recent messages for a conversation, newest first.
 
 ```typescript
 const msgs = await client.getMessages('05abc...', { limit: 20 });
+```
+
+**Options**
+```typescript
+{
+  limit?: number;  // Maximum number of messages to return (default: no limit)
+}
 ```
 
 ### `async *client.messages(): AsyncIterable<Message>`
@@ -193,12 +209,26 @@ await client.addGroupMembers(groupId, ['05newMember...']);
 await client.addGroupMembers(groupId, ['05newMember...'], { withHistory: true }); // grant history access
 ```
 
+**Options**
+```typescript
+{
+  withHistory?: boolean;  // Grant new members access to prior message history (default: false)
+}
+```
+
 ### `await client.removeGroupMembers(groupId, sessionIds, options?): Promise<void>`
 Remove members from a group you admin.
 
 ```typescript
 await client.removeGroupMembers(groupId, ['05exMember...']);
 await client.removeGroupMembers(groupId, ['05exMember...'], { alsoRemoveMessages: true });
+```
+
+**Options**
+```typescript
+{
+  alsoRemoveMessages?: boolean;  // Also delete all messages sent by the removed members (default: false)
+}
 ```
 
 ### `await client.promoteGroupMembers(groupId, memberIds): Promise<void>`
@@ -336,9 +366,9 @@ Or use the async iterators (`client.messages()`, `client.conversations()`) for a
 ### `SendAttachmentOptions`
 ```typescript
 {
-  path: string;              // local file path
-  contentType: string;       // MIME type
-  fileName?: string;         // shown to recipient
+  path: string;              // Absolute or relative local file path to send
+  contentType: string;       // MIME type (e.g. 'image/jpeg', 'application/pdf')
+  fileName?: string;         // File name shown to the recipient (defaults to basename of path)
 }
 ```
 
