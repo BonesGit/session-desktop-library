@@ -8,6 +8,7 @@ https://github.com/BonesGit/session-desktop-library
 npm package: @bonesgit/session-desktop-library
 
 ### Release Notes
+- **v0.1.8** - added send reation emojis. Updated docs
 - **v0.1.7** - added group promotion to admin
 - **v0.1.6** - fixed quoted replies
 - **v0.1.5** - first build that works without pulling in all the UI dependencies.
