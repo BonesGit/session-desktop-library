@@ -23,6 +23,7 @@ const userSettingsModal: any = _mdMod.userSettingsModal;
 
 // if you push a toast manually with toast...() be sure to set the type attribute of the SessionToast component
 export function pushToastError(id: string, description: string) {
+  if (!SessionToastType) return;
   toast.error(<SessionToast description={description} type={SessionToastType.Error} />, {
     toastId: id,
     updateId: id,
@@ -30,6 +31,7 @@ export function pushToastError(id: string, description: string) {
 }
 
 export function pushToastWarning(id: string, description: string, onToastClick?: () => void) {
+  if (!SessionToastType) return;
   toast.warning(
     <SessionToast
       description={description}
@@ -44,6 +46,7 @@ export function pushToastWarning(id: string, description: string, onToastClick?:
 }
 
 export function pushToastInfo(id: string, description: string, onToastClick?: () => void) {
+  if (!SessionToastType) return;
   toast.info(
     <SessionToast
       description={description}
@@ -55,6 +58,7 @@ export function pushToastInfo(id: string, description: string, onToastClick?: ()
 }
 
 export function pushToastSuccess(id: string, description: string) {
+  if (!SessionToastType) return;
   toast.success(<SessionToast description={description} type={SessionToastType.Success} />, {
     toastId: id,
     updateId: id,

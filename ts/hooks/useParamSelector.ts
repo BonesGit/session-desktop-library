@@ -440,29 +440,42 @@ export function useIsTyping(conversationId?: string): boolean {
   return useConversationPropsById(conversationId)?.isTyping || false;
 }
 
-const getMessageExpirationProps = createSelector(
-  getMessagePropsByMessageId,
-  (props): PropsForExpiringMessage | undefined => {
-    if (!props || isEmpty(props)) {
-      return undefined;
-    }
+// Lazy singleton to avoid circular dependency with conversations.ts at module eval time.
+let _getMessageExpirationProps:
+  | ((state: StateType, id: string) => PropsForExpiringMessage | undefined)
+  | undefined;
 
-    const msgProps: PropsForExpiringMessage = {
-      ...pick(props.propsForMessage, [
-        'convoId',
-        'direction',
-        'receivedAt',
-        'isUnread',
-        'expirationTimestamp',
-        'expirationDurationMs',
-        'isExpired',
-      ]),
-      messageId: props.propsForMessage.id,
-    };
+function getMessageExpirationProps(
+  state: StateType,
+  messageId: string
+): PropsForExpiringMessage | undefined {
+  if (!_getMessageExpirationProps) {
+    _getMessageExpirationProps = createSelector(
+      getMessagePropsByMessageId,
+      (props): PropsForExpiringMessage | undefined => {
+        if (!props || isEmpty(props)) {
+          return undefined;
+        }
 
-    return msgProps;
+        const msgProps: PropsForExpiringMessage = {
+          ...pick(props.propsForMessage, [
+            'convoId',
+            'direction',
+            'receivedAt',
+            'isUnread',
+            'expirationTimestamp',
+            'expirationDurationMs',
+            'isExpired',
+          ]),
+          messageId: props.propsForMessage.id,
+        };
+
+        return msgProps;
+      }
+    );
   }
-);
+  return _getMessageExpirationProps(state, messageId);
+}
 
 export function useMessageExpirationPropsById(messageId?: string) {
   return useSelector((state: StateType) => {
