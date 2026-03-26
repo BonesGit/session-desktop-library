@@ -13,6 +13,10 @@ const internalCallImageProcessorWorker = async (
   ...args: any
 ): Promise<any> => {
   if (!imageProcessorWorkerInterface) {
+    const isLibraryMode = typeof process !== 'undefined' && process.type !== 'renderer';
+    const workerFile = isLibraryMode
+      ? 'image_processor.worker.node-wrapper.js'
+      : 'image_processor.worker.compiled.js';
     const imageProcessorWorkerPath = join(
       getAppRootPath(),
       'ts',
@@ -20,7 +24,7 @@ const internalCallImageProcessorWorker = async (
       'workers',
       'node',
       'image_processor',
-      'image_processor.worker.compiled.js'
+      workerFile
     );
     // if we need more than 1minute to resize an image, we have a bigger issue...
     imageProcessorWorkerInterface = new WorkerInterface(imageProcessorWorkerPath, 1 * 60 * 1000);
