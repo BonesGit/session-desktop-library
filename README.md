@@ -27,10 +27,10 @@ npm package: @bonesgit/session-desktop-library
 - Attachments — send files/images with messages; download and decrypt received attachments
 - Quoted replies — send messages quoting a prior message
 - Linked device sync — group creation pushes config to user's own swarm so other devices see it
-- Typing Indicator - Can set whether or not the user is typing, to show the typing indicator
+- Typing Indicator - Can set whether or not the user is typing, to show the typing indicator. DMs only. No group support.
 - Contact management — accept contact requests, block/unblock contacts <span style="color:red">__(untested)__</span>
 - Conversation updates — real-time async iterator stream for metadata changes <span style="color:red">__(untested)__</span>
-- Profile — set display name, set display image <span style="color:red">__(untested)__</span>
+- Profile — set display name, set display image
 - Disappearing messages — send with configurable expiry timer <span style="color:red">__(untested)__</span>
 
 [SKILL.md](client/SKILL.md)  
