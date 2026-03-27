@@ -30,7 +30,7 @@ npm package: @bonesgit/session-desktop-library
 - Typing Indicator - Can set whether or not the user is typing, to show the typing indicator
 - Contact management — accept contact requests, block/unblock contacts <span style="color:red">__(untested)__</span>
 - Conversation updates — real-time async iterator stream for metadata changes <span style="color:red">__(untested)__</span>
-- Profile — set display name <span style="color:red">__(untested)__</span>
+- Profile — set display name, set display image <span style="color:red">__(untested)__</span>
 - Disappearing messages — send with configurable expiry timer <span style="color:red">__(untested)__</span>
 
 [SKILL.md](client/SKILL.md)  

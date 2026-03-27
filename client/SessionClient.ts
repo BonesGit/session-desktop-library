@@ -922,6 +922,33 @@ export class SessionClient extends EventEmitter {
     await UserConfigWrapperActions.setNameTruncated(name);
   }
 
+  /**
+   * Process, encrypt, and upload a new profile image, then persist it locally
+   * and push the updated profile to the user's swarm.
+   *
+   * @param image - Raw image bytes (any format supported by sharp: jpeg, png, gif, webp, …)
+   */
+  async setDisplayImage(image: Buffer | ArrayBuffer): Promise<void> {
+    this._assertInitialized();
+    const arrayBuffer: ArrayBuffer = image instanceof ArrayBuffer
+      ? image
+      : image.buffer.slice(image.byteOffset, image.byteOffset + image.byteLength) as ArrayBuffer;
+    const { uploadAndSetOurAvatarShared } = await import(
+      '../ts/interactions/avatar-interactions/nts-avatar-interactions'
+    );
+    const result = await uploadAndSetOurAvatarShared({
+      decryptedAvatarData: arrayBuffer,
+      context: 'uploadNewAvatar',
+    });
+    if (!result) {
+      throw new Error('setDisplayImage: failed to upload avatar');
+    }
+    const { UserSync } = await import(
+      '../ts/session/utils/job_runners/jobs/UserSyncJob'
+    );
+    await UserSync.pushChangesToUserSwarmIfNeeded();
+  }
+
   // ---------------------------------------------------------------------------
   // Contacts
   // ---------------------------------------------------------------------------

@@ -295,6 +295,19 @@ Unblock a previously blocked contact.
 ### `await client.setDisplayName(name): Promise<void>`
 Set the display name shown to other Session users.
 
+### `await client.setDisplayImage(image): Promise<void>`
+Upload a new profile picture. Accepts a `Buffer` or `ArrayBuffer` of any image format
+supported by sharp (jpeg, png, gif, webp, …). The image is automatically resized,
+converted to webp, encrypted, and uploaded to the Session file server. The updated
+profile is then pushed to the user's swarm so linked devices and contacts see the change.
+
+```typescript
+import { readFileSync } from 'fs';
+
+const image = readFileSync('/path/to/avatar.png');
+await client.setDisplayImage(image);
+```
+
 ---
 
 ## Events
