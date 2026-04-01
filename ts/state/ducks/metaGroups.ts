@@ -52,9 +52,13 @@ import {
 } from '../../session/types/with';
 const _mgMdPath = './modalDialog';
 const updateEditProfilePictureModal: (arg: any) => any =
-  process.type === 'renderer' ? (require(_mgMdPath) as any).updateEditProfilePictureModal : () => ({});
+  process.type === 'renderer'
+    ? (require(_mgMdPath) as any).updateEditProfilePictureModal
+    : () => ({});
 const updateConversationDetailsModal: (arg: any) => any =
-  process.type === 'renderer' ? (require(_mgMdPath) as any).updateConversationDetailsModal : () => ({});
+  process.type === 'renderer'
+    ? (require(_mgMdPath) as any).updateConversationDetailsModal
+    : () => ({});
 import { tr } from '../../localization/localeTools';
 import { type GroupMemberGetRedux, makeGroupMemberGetRedux } from './types/groupReduxTypes';
 import { uploadFileToFsWithOnionV4 } from '../../session/apis/file_server_api/FileServerApi';

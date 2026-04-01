@@ -207,7 +207,16 @@ async function loadSnodePoolFromAsset(): Promise<SnodesFromSeed> {
     // Library mode: read the bundled service-nodes-cache.json directly from disk
     try {
       // Walk up from this compiled file's location to find the asset
-      const assetPath = path.join(__dirname, '..', '..', '..', '..', '..', 'dynamic_assets', 'service-nodes-cache.json');
+      const assetPath = path.join(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        '..',
+        '..',
+        'dynamic_assets',
+        'service-nodes-cache.json'
+      );
       const content = fs.readFileSync(assetPath, 'utf8');
       const fileCreatedMs = fs.statSync(assetPath).mtimeMs;
       const json = JSON.parse(content);
@@ -227,7 +236,10 @@ async function loadSnodePoolFromAsset(): Promise<SnodesFromSeed> {
         return snode.requested_unlock_height > expectedCurrentHeight;
       });
     } catch (e) {
-      window?.log?.warn('[SeedNodeAPI] Failed to load built-in snode pool asset in library mode:', e);
+      window?.log?.warn(
+        '[SeedNodeAPI] Failed to load built-in snode pool asset in library mode:',
+        e
+      );
       return [];
     }
   }

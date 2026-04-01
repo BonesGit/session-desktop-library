@@ -58,7 +58,7 @@ export function getLibGroupKickedOutsideRedux(convoId?: string): boolean | undef
 
 export const ReduxOnionSelectors = {
   isOnlineOutsideRedux(): boolean {
-    return !!((window.inboxStore?.getState() as any)?.onionPaths?.isOnline);
+    return !!(window.inboxStore?.getState() as any)?.onionPaths?.isOnline;
   },
 };
 
@@ -73,7 +73,10 @@ export const ReduxSogsRoomInfos = {
     });
   },
   setCanWriteOutsideRedux(convoId: string, canWrite: boolean) {
-    window.inboxStore?.dispatch({ type: 'sogsRoomInfos/setCanWrite', payload: { convoId, canWrite } });
+    window.inboxStore?.dispatch({
+      type: 'sogsRoomInfos/setCanWrite',
+      payload: { convoId, canWrite },
+    });
   },
   setModeratorsOutsideRedux(convoId: string, moderators: Array<string>) {
     window.inboxStore?.dispatch({

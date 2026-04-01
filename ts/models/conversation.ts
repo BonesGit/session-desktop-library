@@ -51,10 +51,7 @@ import {
   ReduxConversationType,
 } from '../state/ducks/conversations';
 
-import {
-  ReplyingToMessageProps,
-  SendMessageType,
-} from '../types/messageCompositionTypes';
+import { ReplyingToMessageProps, SendMessageType } from '../types/messageCompositionTypes';
 import { OpenGroupData } from '../data/opengroups';
 import { SettingsKey } from '../data/settings-key';
 import {

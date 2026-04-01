@@ -398,18 +398,29 @@ const _handleMessage = async (
 
 // Wire up message passing based on runtime context
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const _workerThreads = (() => { try { return require('worker_threads'); } catch { return null; } })();
+const _workerThreads = (() => {
+  try {
+    return require('worker_threads');
+  } catch {
+    return null;
+  }
+})();
 if (_workerThreads?.parentPort) {
   // Node.js worker_threads mode (library build)
   const { parentPort } = _workerThreads;
   _post = (data: unknown) => parentPort.postMessage(data);
-  parentPort.on('message', (data: [number, ConfigWrapperObjectTypesMeta | 'Blinding', string, ...any]) => {
-    void _handleMessage(data);
-  });
+  parentPort.on(
+    'message',
+    (data: [number, ConfigWrapperObjectTypesMeta | 'Blinding', string, ...any]) => {
+      void _handleMessage(data);
+    }
+  );
 } else {
   // Browser Web Worker mode (Electron renderer)
   _post = (data: unknown) => postMessage(data);
-  onmessage = (e: { data: [number, ConfigWrapperObjectTypesMeta | 'Blinding', string, ...any] }) => {
+  onmessage = (e: {
+    data: [number, ConfigWrapperObjectTypesMeta | 'Blinding', string, ...any];
+  }) => {
     void _handleMessage(e.data);
   };
 }

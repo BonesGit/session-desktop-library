@@ -26,13 +26,16 @@ export class WorkerInterface {
   private readonly timeout: number;
   private readonly _DEBUG: boolean;
   private _jobCounter: number;
-  private readonly _jobs: Record<number, {
-    fnName: string;
-    start: number;
-    resolve?: (value: unknown) => void;
-    reject?: (reason: unknown) => void;
-    args?: unknown;
-  }>;
+  private readonly _jobs: Record<
+    number,
+    {
+      fnName: string;
+      start: number;
+      resolve?: (value: unknown) => void;
+      reject?: (reason: unknown) => void;
+      args?: unknown;
+    }
+  >;
   private readonly _worker: Worker;
 
   constructor(workerPath: string, timeout = WORKER_TIMEOUT) {
@@ -124,7 +127,10 @@ export class WorkerInterface {
     return id;
   }
 
-  private _updateJob(id: number, data: { resolve?: (v: unknown) => void; reject?: (r: unknown) => void; args?: unknown }) {
+  private _updateJob(
+    id: number,
+    data: { resolve?: (v: unknown) => void; reject?: (r: unknown) => void; args?: unknown }
+  ) {
     const { resolve, reject } = data;
     const { fnName, start } = this._jobs[id];
 

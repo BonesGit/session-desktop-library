@@ -1,6 +1,7 @@
 build/**
 app/**
 dist/**
+dist-lib/**
 mnemonic_languages/**
 
 # editor

@@ -24,7 +24,10 @@ import { SessionEventEmitter } from '../../ts/shared/event_emitter';
 import { createStubStore } from './stubStore';
 import { internalEmitter } from './internalEmitter';
 import type { SessionClientConfig } from '../types';
-import type { SessionBooleanFeatureFlags, SessionDataFeatureFlags } from '../../ts/state/ducks/types/releasedFeaturesReduxTypes';
+import type {
+  SessionBooleanFeatureFlags,
+  SessionDataFeatureFlags,
+} from '../../ts/state/ducks/types/releasedFeaturesReduxTypes';
 
 // Default feature flags — all features off/default, no debug logging
 const defaultBooleanFeatureFlags: SessionBooleanFeatureFlags = {
@@ -112,7 +115,8 @@ export function installWindowShim(config: SessionClientConfig): void {
     try {
       // Synchronous — Storage.get is sync once initialized
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { Storage } = require('../../ts/util/storage') as typeof import('../../ts/util/storage');
+      const { Storage } =
+        require('../../ts/util/storage') as typeof import('../../ts/util/storage');
       return Storage.get(key);
     } catch {
       return undefined;
@@ -122,10 +126,16 @@ export function installWindowShim(config: SessionClientConfig): void {
   // Minimal in-memory localStorage stub (used by accountManager for delete-account flow)
   const localStorageData: Record<string, string> = {};
   const localStorageStub = {
-    setItem: (key: string, value: string) => { localStorageData[key] = value; },
+    setItem: (key: string, value: string) => {
+      localStorageData[key] = value;
+    },
     getItem: (key: string): string | null => localStorageData[key] ?? null,
-    removeItem: (key: string) => { delete localStorageData[key]; },
-    clear: () => { Object.keys(localStorageData).forEach(k => delete localStorageData[k]); },
+    removeItem: (key: string) => {
+      delete localStorageData[key];
+    },
+    clear: () => {
+      Object.keys(localStorageData).forEach(k => delete localStorageData[k]);
+    },
   };
 
   // storageMigrations.ts accesses `localStorage.getItem()` as a bare global (not window.localStorage).
@@ -150,7 +160,9 @@ export function installWindowShim(config: SessionClientConfig): void {
     platform: process.platform,
     localStorage: localStorageStub,
     // In library mode, restart is a no-op (no Electron app to restart)
-    restart: () => { logger.warn('[session-lib] window.restart() called — ignored in library mode'); },
+    restart: () => {
+      logger.warn('[session-lib] window.restart() called — ignored in library mode');
+    },
     // setOpengroupPruning: persists the pruning setting to Storage
     setOpengroupPruning: async (value: boolean) =>
       storagePut('settingsOpengroupPruning', value as unknown as never),

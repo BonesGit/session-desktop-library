@@ -1,7 +1,10 @@
 import { GroupPubkeyType, PubkeyType, WithGroupPubkey } from 'libsession_util_nodejs';
 import { isEmpty, isFinite, isNumber } from 'lodash';
 import { Data } from '../../data/data';
-import { deleteAllMessagesByConvoIdNoConfirmation, deleteMessagesFromSwarmOnly } from '../../session/conversations/messageDeleteUtils';
+import {
+  deleteAllMessagesByConvoIdNoConfirmation,
+  deleteMessagesFromSwarmOnly,
+} from '../../session/conversations/messageDeleteUtils';
 import { CONVERSATION_PRIORITIES, ConversationTypeEnum } from '../../models/types';
 import { HexString } from '../../node/hexStrings';
 import { SignalService } from '../../protobuf';

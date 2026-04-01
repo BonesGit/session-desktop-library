@@ -33,7 +33,10 @@ if (fs.existsSync(envFile)) {
     const eq = trimmed.indexOf('=');
     if (eq === -1) continue;
     const key = trimmed.slice(0, eq).trim();
-    const val = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    const val = trimmed
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, '');
     if (!(key in process.env)) process.env[key] = val;
   }
 }
@@ -65,7 +68,8 @@ const RECIPIENT_SESSION_ID = process.env.RECIPIENT_SESSION_ID;
 const DATA_PATH = process.env.DATA_PATH
   ? path.resolve(__dirname, process.env.DATA_PATH)
   : path.join(os.tmpdir(), 'session-lib-test');
-const MESSAGE_BODY = process.env.MESSAGE_BODY || `Hello from session-lib test @ ${new Date().toISOString()}`;
+const MESSAGE_BODY =
+  process.env.MESSAGE_BODY || `Hello from session-lib test @ ${new Date().toISOString()}`;
 const LOG_LEVEL = process.env.LOG_LEVEL || 'warn';
 
 if (!MNEMONIC) {
@@ -75,7 +79,9 @@ if (!RECIPIENT_SESSION_ID) {
   die('RECIPIENT_SESSION_ID is required. Set it in the environment or in client/tests/.env');
 }
 if (!RECIPIENT_SESSION_ID.startsWith('05') || RECIPIENT_SESSION_ID.length !== 66) {
-  die(`RECIPIENT_SESSION_ID looks invalid: "${RECIPIENT_SESSION_ID}"\nExpected a 66-char hex string starting with "05".`);
+  die(
+    `RECIPIENT_SESSION_ID looks invalid: "${RECIPIENT_SESSION_ID}"\nExpected a 66-char hex string starting with "05".`
+  );
 }
 
 // --- test -------------------------------------------------------------------
@@ -102,7 +108,10 @@ async function run() {
   if (!sessionId) {
     console.log('\n2. restoreAccount()  (no existing account found)');
     sessionId = await client.restoreAccount(MNEMONIC);
-    assert(typeof sessionId === 'string' && sessionId.startsWith('05'), `restored session ID: ${sessionId}`);
+    assert(
+      typeof sessionId === 'string' && sessionId.startsWith('05'),
+      `restored session ID: ${sessionId}`
+    );
   } else {
     // Verify the stored account matches the provided mnemonic
     console.log('\n2. (existing account found — skipping restore)');
@@ -128,11 +137,17 @@ async function run() {
   // ---- sendMessage (with attachment) ---------------------------------------
   console.log('4b. sendMessage() with attachment');
   const attachPath = path.join(DATA_PATH, 'test-attachment.txt');
-  fs.writeFileSync(attachPath, `Attachment test @ ${new Date().toISOString()}\nHello from session-lib!\n`);
+  fs.writeFileSync(
+    attachPath,
+    `Attachment test @ ${new Date().toISOString()}\nHello from session-lib!\n`
+  );
   const attachMsgId = await client.sendMessage(RECIPIENT_SESSION_ID, 'Here is an attachment', {
     attachments: [{ path: attachPath, contentType: 'text/plain', fileName: 'test-attachment.txt' }],
   });
-  assert(typeof attachMsgId === 'string', `sendMessage() with attachment returned an ID: ${attachMsgId}`);
+  assert(
+    typeof attachMsgId === 'string',
+    `sendMessage() with attachment returned an ID: ${attachMsgId}`
+  );
   console.log();
 
   // ---- wait for job runner to deliver to network ---------------------------
@@ -152,7 +167,10 @@ async function run() {
   }
   console.log(`  message status: ${deliveredMsg?.status ?? 'not found'}`);
   assert(deliveredMsg !== undefined, 'outgoing message found in history');
-  assert(deliveredMsg?.status === 'sent', `message status is 'sent' (was: ${deliveredMsg?.status})`);
+  assert(
+    deliveredMsg?.status === 'sent',
+    `message status is 'sent' (was: ${deliveredMsg?.status})`
+  );
   console.log();
 
   // ---- verify message appears in history -----------------------------------

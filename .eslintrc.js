@@ -31,7 +31,7 @@ module.exports = {
 
   plugins: ['mocha', 'more', '@typescript-eslint', 'local-rules'],
   parser: '@typescript-eslint/parser',
-  parserOptions: { project: ['tsconfig.json'] },
+  parserOptions: { project: ['tsconfig.json', 'tsconfig.lib.json'] },
 
   rules: {
     'comma-dangle': [

@@ -38,7 +38,10 @@ if (fs.existsSync(envFile)) {
     const eq = trimmed.indexOf('=');
     if (eq === -1) continue;
     const key = trimmed.slice(0, eq).trim();
-    const val = trimmed.slice(eq + 1).trim().replace(/^[\"']|[\"']$/g, '');
+    const val = trimmed
+      .slice(eq + 1)
+      .trim()
+      .replace(/^[\"']|[\"']$/g, '');
     if (!(key in process.env)) process.env[key] = val;
   }
 }
@@ -71,7 +74,8 @@ const RECIPIENT_SESSION_ID = process.env.RECIPIENT_SESSION_ID;
 const DATA_PATH = process.env.DATA_PATH
   ? path.resolve(__dirname, process.env.DATA_PATH)
   : path.join(os.tmpdir(), 'session-lib-test');
-const GROUP_MESSAGE = process.env.GROUP_MESSAGE || `Hello from session-lib group test @ ${new Date().toISOString()}`;
+const GROUP_MESSAGE =
+  process.env.GROUP_MESSAGE || `Hello from session-lib group test @ ${new Date().toISOString()}`;
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 
 if (!MNEMONIC) {
@@ -81,7 +85,9 @@ if (!RECIPIENT_SESSION_ID) {
   die('RECIPIENT_SESSION_ID is required. Set it in the environment or in client/tests/.env');
 }
 if (!RECIPIENT_SESSION_ID.startsWith('05') || RECIPIENT_SESSION_ID.length !== 66) {
-  die(`RECIPIENT_SESSION_ID looks invalid: "${RECIPIENT_SESSION_ID}"\nExpected a 66-char hex string starting with "05".`);
+  die(
+    `RECIPIENT_SESSION_ID looks invalid: "${RECIPIENT_SESSION_ID}"\nExpected a 66-char hex string starting with "05".`
+  );
 }
 
 // --- test -------------------------------------------------------------------
@@ -109,7 +115,10 @@ async function run() {
   if (!sessionId) {
     console.log('\n2. restoreAccount()  (no existing account found)');
     sessionId = await client.restoreAccount(MNEMONIC);
-    assert(typeof sessionId === 'string' && sessionId.startsWith('05'), `restored session ID: ${sessionId}`);
+    assert(
+      typeof sessionId === 'string' && sessionId.startsWith('05'),
+      `restored session ID: ${sessionId}`
+    );
   } else {
     console.log('\n2. (existing account found — skipping restore)');
     assert(true, `using existing session ID: ${sessionId}`);
@@ -126,15 +135,18 @@ async function run() {
   // ---- find or create group ------------------------------------------------
   console.log(`4. find or create group "${GROUP_NAME}"`);
   const convos = await client.getConversations();
-  console.log('Conversations:', convos.map(c => ({ id: c.id, displayName: c.displayName })));
-  const matchingGroups = convos.filter(c =>
-    c.id.startsWith('03') && c.displayName === GROUP_NAME
+  console.log(
+    'Conversations:',
+    convos.map(c => ({ id: c.id, displayName: c.displayName }))
   );
+  const matchingGroups = convos.filter(c => c.id.startsWith('03') && c.displayName === GROUP_NAME);
 
   // Leave any duplicate groups — keep the first (oldest) one
   if (matchingGroups.length > 1) {
     const duplicates = matchingGroups.slice(1);
-    console.log(`   → found ${matchingGroups.length} groups named "${GROUP_NAME}" — leaving ${duplicates.length} duplicate(s):`);
+    console.log(
+      `   → found ${matchingGroups.length} groups named "${GROUP_NAME}" — leaving ${duplicates.length} duplicate(s):`
+    );
     for (const dup of duplicates) {
       console.log(`     leaving ${dup.id}`);
       await client.leaveGroup(dup.id);
@@ -149,7 +161,10 @@ async function run() {
   } else {
     console.log(`   → no existing group found — creating...`);
     const groupId = await client.createGroup(GROUP_NAME, [RECIPIENT_SESSION_ID]);
-    assert(typeof groupId === 'string' && groupId.startsWith('03'), `createGroup() returned a valid ID`);
+    assert(
+      typeof groupId === 'string' && groupId.startsWith('03'),
+      `createGroup() returned a valid ID`
+    );
     group = { id: groupId };
 
     // Wait for the group invite job to finish sending 1:1 to the recipient's swarm
@@ -182,7 +197,10 @@ async function run() {
   }
   console.log(`  message status: ${deliveredMsg?.status ?? 'not found'}`);
   assert(deliveredMsg !== undefined, 'outgoing message found in history');
-  assert(deliveredMsg?.status === 'sent', `message status is 'sent' (was: ${deliveredMsg?.status})`);
+  assert(
+    deliveredMsg?.status === 'sent',
+    `message status is 'sent' (was: ${deliveredMsg?.status})`
+  );
   console.log();
 
   // ---- verify in history ---------------------------------------------------

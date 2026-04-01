@@ -19,10 +19,7 @@ import { perfEnd, perfStart } from '../session/utils/Performance';
 import { timeoutWithAbort } from '../session/utils/Promise';
 import { ed25519Str } from '../session/utils/String';
 import { SessionUtilContact } from '../session/utils/libsession/libsession_utils_contacts';
-import {
-  quoteMessage,
-  resetConversationExternal,
-} from '../state/ducks/conversations';
+import { quoteMessage, resetConversationExternal } from '../state/ducks/conversations';
 import {
   updateConfirmModal,
   updateGroupMembersModal,

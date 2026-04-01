@@ -29,7 +29,10 @@ declare global {
     onTryPassword: (pw: string) => Promise<void>;
     restart: () => void;
     getSeedNodeList: () => Array<string> | undefined;
-    setPassword: (newPassword: string | null, oldPassword: string | null) => Promise<string | undefined>;
+    setPassword: (
+      newPassword: string | null,
+      oldPassword: string | null
+    ) => Promise<string | undefined>;
     isOnline: boolean;
     toggleMediaPermissions: () => Promise<void>;
     toggleCallMediaPermissionsTo: (enabled: boolean) => Promise<void>;
@@ -62,7 +65,10 @@ declare global {
     contextMenuShown: boolean;
     inboxStore?: { dispatch: (action: any) => void; getState: () => any };
     getState: () => unknown;
-    openConversationWithMessages: (args: { conversationKey: string; messageId: string | null }) => Promise<void>;
+    openConversationWithMessages: (args: {
+      conversationKey: string;
+      messageId: string | null;
+    }) => Promise<void>;
     setStartInTray: (val: boolean) => Promise<void>;
     getStartInTray: () => Promise<boolean>;
     getOpengroupPruning: () => Promise<boolean>;

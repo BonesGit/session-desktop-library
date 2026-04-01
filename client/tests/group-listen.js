@@ -39,7 +39,10 @@ if (fs.existsSync(envFile)) {
     const eq = trimmed.indexOf('=');
     if (eq === -1) continue;
     const key = trimmed.slice(0, eq).trim();
-    const val = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    const val = trimmed
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, '');
     if (!(key in process.env)) process.env[key] = val;
   }
 }
@@ -100,9 +103,7 @@ async function run() {
   // ---- find group (must already exist) -------------------------------------
   console.log(`Looking for group "${GROUP_NAME}"...`);
   const convos = await client.getConversations();
-  const matchingGroups = convos.filter(c =>
-    c.id.startsWith('03') && c.displayName === GROUP_NAME
-  );
+  const matchingGroups = convos.filter(c => c.id.startsWith('03') && c.displayName === GROUP_NAME);
 
   if (matchingGroups.length === 0) {
     console.error(`\n❌  Group "${GROUP_NAME}" not found. Run group.js first to create it.\n`);
@@ -113,7 +114,9 @@ async function run() {
   // Leave any duplicate groups — keep the first (oldest) one
   if (matchingGroups.length > 1) {
     const duplicates = matchingGroups.slice(1);
-    console.log(`   → found ${matchingGroups.length} groups named "${GROUP_NAME}" — leaving ${duplicates.length} duplicate(s):`);
+    console.log(
+      `   → found ${matchingGroups.length} groups named "${GROUP_NAME}" — leaving ${duplicates.length} duplicate(s):`
+    );
     for (const dup of duplicates) {
       console.log(`     leaving ${dup.id}`);
       await client.leaveGroup(dup.id);
@@ -157,7 +160,11 @@ async function run() {
               const localPath = await client.downloadAttachment(att, DOWNLOADS_PATH);
               console.log(`   ↳✅ downloaded: ${att.fileName ?? att.contentType} → ${localPath}`);
               if (att.contentType?.startsWith('image/')) {
-                downloadedImages.push({ path: localPath, contentType: att.contentType, fileName: att.fileName });
+                downloadedImages.push({
+                  path: localPath,
+                  contentType: att.contentType,
+                  fileName: att.fileName,
+                });
               } else {
                 hasNonImageAttachment = true;
               }
@@ -199,7 +206,9 @@ async function run() {
           ...(downloadedImages.length > 0 ? { attachments: downloadedImages } : {}),
         };
         await client.sendMessage(groupId, replyBody, replyOpts);
-        console.log(`✉️   → replied to group${downloadedImages.length > 0 ? ` with ${downloadedImages.length} image(s)` : ''}`);
+        console.log(
+          `✉️   → replied to group${downloadedImages.length > 0 ? ` with ${downloadedImages.length} image(s)` : ''}`
+        );
       }
     }
   })();

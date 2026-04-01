@@ -17,7 +17,9 @@ type AnyRecord = Record<string, any>;
 
 export interface LibraryState {
   onionPaths: {
-    snodePaths: Array<Array<{ ip: string; port: number; pubkey_ed25519: string; pubkey_x25519: string }>>;
+    snodePaths: Array<
+      Array<{ ip: string; port: number; pubkey_ed25519: string; pubkey_x25519: string }>
+    >;
     isOnline: boolean;
   };
   conversations: AnyRecord & { quotedMessages: Array<AnyRecord> };
@@ -99,7 +101,10 @@ export function getInitialLibraryState(): LibraryState {
   };
 }
 
-export function libraryReducer(state: LibraryState, action: { type: string; payload?: unknown }): LibraryState {
+export function libraryReducer(
+  state: LibraryState,
+  action: { type: string; payload?: unknown }
+): LibraryState {
   switch (action.type) {
     // Onion path updates — backend reads state.onionPaths.snodePaths
     case 'UPDATE_ONION_PATHS': {
@@ -108,7 +113,8 @@ export function libraryReducer(state: LibraryState, action: { type: string; payl
         ...state,
         onionPaths: {
           ...state.onionPaths,
-          snodePaths: (payload?.snodePaths ?? state.onionPaths.snodePaths) as LibraryState['onionPaths']['snodePaths'],
+          snodePaths: (payload?.snodePaths ??
+            state.onionPaths.snodePaths) as LibraryState['onionPaths']['snodePaths'],
         },
       };
     }
@@ -157,10 +163,13 @@ export function libraryReducer(state: LibraryState, action: { type: string; payl
     }
 
     case 'userGroup/refreshUserGroupsSlice': {
-      const groups = (action.payload as { groups?: Array<{ pubkeyHex: string }> } | undefined)?.groups;
+      const groups = (action.payload as { groups?: Array<{ pubkeyHex: string }> } | undefined)
+        ?.groups;
       if (Array.isArray(groups)) {
         const map: AnyRecord = {};
-        groups.forEach(g => { map[g.pubkeyHex] = g; });
+        groups.forEach(g => {
+          map[g.pubkeyHex] = g;
+        });
         return { ...state, userGroups: { userGroups: map } };
       }
       return state;
@@ -181,7 +190,9 @@ export function libraryReducer(state: LibraryState, action: { type: string; payl
     // These fulfilled actions carry { groupPk, infos, members } in their payload.
     // loadMetaDumpsFromDB returns Array<{groupPk, infos, members}> — different shape
     case 'group/loadMetaDumpsFromDB/fulfilled': {
-      const list = action.payload as Array<{ groupPk?: string; infos?: unknown; members?: unknown }> | undefined;
+      const list = action.payload as
+        | Array<{ groupPk?: string; infos?: unknown; members?: unknown }>
+        | undefined;
       if (!Array.isArray(list) || list.length === 0) return state;
       const newInfos = { ...state.groups.infos };
       const newMembers = { ...state.groups.members };
@@ -203,7 +214,9 @@ export function libraryReducer(state: LibraryState, action: { type: string; payl
     case 'group/currentDeviceGroupAvatarRemoval/fulfilled':
     case 'group/inviteResponseReceived/fulfilled':
     case 'group/handleMemberLeftMessage/fulfilled': {
-      const p = action.payload as { groupPk?: string; infos?: unknown; members?: unknown } | undefined;
+      const p = action.payload as
+        | { groupPk?: string; infos?: unknown; members?: unknown }
+        | undefined;
       if (p?.groupPk && p.infos && p.members) {
         return {
           ...state,

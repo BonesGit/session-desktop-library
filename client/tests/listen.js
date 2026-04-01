@@ -33,7 +33,10 @@ if (fs.existsSync(envFile)) {
     const eq = trimmed.indexOf('=');
     if (eq === -1) continue;
     const key = trimmed.slice(0, eq).trim();
-    const val = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    const val = trimmed
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, '');
     if (!(key in process.env)) process.env[key] = val;
   }
 }
@@ -51,7 +54,9 @@ const TIMEOUT_MS = parseInt(process.env.TIMEOUT_MS || '30000', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 
 if (!MNEMONIC) {
-  console.error('\nERROR: MNEMONIC is required. Set it in the environment or in client/tests/.env\n');
+  console.error(
+    '\nERROR: MNEMONIC is required. Set it in the environment or in client/tests/.env\n'
+  );
   process.exit(1);
 }
 
@@ -113,7 +118,11 @@ async function run() {
               const localPath = await client.downloadAttachment(att, DOWNLOADS_PATH);
               console.log(`   ↳ downloaded: ${att.fileName ?? att.contentType} → ${localPath}`);
               if (att.contentType?.startsWith('image/')) {
-                downloadedImages.push({ path: localPath, contentType: att.contentType, fileName: att.fileName });
+                downloadedImages.push({
+                  path: localPath,
+                  contentType: att.contentType,
+                  fileName: att.fileName,
+                });
               } else {
                 hasNonImageAttachment = true;
               }
@@ -131,7 +140,9 @@ async function run() {
         };
         try {
           await client.sendMessage(msg.source, replyBody, replyOpts);
-          console.log(`   → replied to ${msg.source}${downloadedImages.length > 0 ? ` with ${downloadedImages.length} image(s)` : ''}`);
+          console.log(
+            `   → replied to ${msg.source}${downloadedImages.length > 0 ? ` with ${downloadedImages.length} image(s)` : ''}`
+          );
         } finally {
           try {
             await client.setTyping(msg.source, false);

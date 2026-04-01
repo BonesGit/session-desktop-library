@@ -8,7 +8,9 @@ const _userMdPath = './modalDialog';
 const userSettingsModal: (arg: any) => any =
   process.type === 'renderer' ? (require(_userMdPath) as any).userSettingsModal : () => ({});
 const updateEditProfilePictureModal: (arg: any) => any =
-  process.type === 'renderer' ? (require(_userMdPath) as any).updateEditProfilePictureModal : () => ({});
+  process.type === 'renderer'
+    ? (require(_userMdPath) as any).updateEditProfilePictureModal
+    : () => ({});
 import { NetworkTime } from '../../util/NetworkTime';
 import { UserConfigWrapperActions } from '../../webworker/workers/browser/libsession/libsession_worker_userconfig_interface';
 import { SessionProfileResetAvatarPrivate } from '../../models/profile';

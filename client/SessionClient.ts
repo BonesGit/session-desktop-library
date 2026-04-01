@@ -159,10 +159,7 @@ export class SessionClient extends EventEmitter {
     //      unapproved contacts). These never reach Notifications.addNotification,
     //      so we fetch the latest message directly from the DB.
     internalEmitter.on('redux:dispatch', async (action: AnyValue) => {
-      if (
-        action.type === 'conversations/conversationsChanged' &&
-        Array.isArray(action.payload)
-      ) {
+      if (action.type === 'conversations/conversationsChanged' && Array.isArray(action.payload)) {
         for (const convoData of action.payload as AnyValue[]) {
           const convoId = convoData.id as string;
           if (!convoId) continue;
@@ -248,9 +245,7 @@ export class SessionClient extends EventEmitter {
     // Stop SwarmPolling first so no timers fire after the DB is closed.
     // If polling was never started (e.g. no account) this is a no-op.
     try {
-      const { getSwarmPollingInstance } = await import(
-        '../ts/session/apis/snode_api/swarmPolling'
-      );
+      const { getSwarmPollingInstance } = await import('../ts/session/apis/snode_api/swarmPolling');
       getSwarmPollingInstance().stop();
     } catch (e) {
       window?.log?.warn('[session-lib] shutdown: error stopping SwarmPolling:', e);
@@ -335,7 +330,7 @@ export class SessionClient extends EventEmitter {
 
   /**
    * Returns the recovery mnemonic for the current account.
-   * 
+   *
    * TODO: delete this, shouldn't need it
    */
   /*
@@ -385,11 +380,7 @@ export class SessionClient extends EventEmitter {
    * Send a text message (and optionally attachments) to a Session ID or group.
    * Returns the network timestamp used as the message's ID.
    */
-  async sendMessage(
-    to: string,
-    body: string,
-    options: SendMessageOptions = {}
-  ): Promise<string> {
+  async sendMessage(to: string, body: string, options: SendMessageOptions = {}): Promise<string> {
     this._assertInitialized();
     const { ConvoHub } = await import('../ts/session/conversations');
     const { ConversationTypeEnum } = await import('../ts/models/types');
@@ -642,7 +633,9 @@ export class SessionClient extends EventEmitter {
 
     const groupPk = result?.payload?.groupPk as string | undefined;
     if (!groupPk) {
-      throw new Error(`createGroup: thunk succeeded but returned no groupPk (payload: ${JSON.stringify(result?.payload)})`);
+      throw new Error(
+        `createGroup: thunk succeeded but returned no groupPk (payload: ${JSON.stringify(result?.payload)})`
+      );
     }
 
     // Persist the group name in the conversation model's displayNameInProfile field so
@@ -805,7 +798,9 @@ export class SessionClient extends EventEmitter {
       messageHash: null,
     });
 
-    const groupMemberChange: AnyValue = await (GroupUpdateMessageFactory as AnyValue).getPromotedControlMessage({
+    const groupMemberChange: AnyValue = await (
+      GroupUpdateMessageFactory as AnyValue
+    ).getPromotedControlMessage({
       adminSecretKey: groupInWrapper.secretKey,
       convo,
       groupPk: groupId,
@@ -818,10 +813,9 @@ export class SessionClient extends EventEmitter {
       throw new Error('promoteGroupMembers: failed to build group change message');
     }
 
-    const storeRequests: AnyValue = await (StoreGroupRequestFactory as AnyValue).makeGroupMessageSubRequest(
-      [groupMemberChange],
-      groupInWrapper
-    );
+    const storeRequests: AnyValue = await (
+      StoreGroupRequestFactory as AnyValue
+    ).makeGroupMessageSubRequest([groupMemberChange], groupInWrapper);
 
     const controller = new AbortController();
     const result: AnyValue = await (timeoutWithAbort as AnyValue)(
@@ -837,7 +831,9 @@ export class SessionClient extends EventEmitter {
     );
 
     if (result?.[0]?.code !== 200) {
-      throw new Error(`promoteGroupMembers: swarm rejected the change (code: ${result?.[0]?.code})`);
+      throw new Error(
+        `promoteGroupMembers: swarm rejected the change (code: ${result?.[0]?.code})`
+      );
     }
 
     for (const member of membersHex) {
@@ -930,9 +926,13 @@ export class SessionClient extends EventEmitter {
    */
   async setDisplayImage(image: Buffer | ArrayBuffer): Promise<void> {
     this._assertInitialized();
-    const arrayBuffer: ArrayBuffer = image instanceof ArrayBuffer
-      ? image
-      : image.buffer.slice(image.byteOffset, image.byteOffset + image.byteLength) as ArrayBuffer;
+    const arrayBuffer: ArrayBuffer =
+      image instanceof ArrayBuffer
+        ? image
+        : (image.buffer.slice(
+            image.byteOffset,
+            image.byteOffset + image.byteLength
+          ) as ArrayBuffer);
     const { uploadAndSetOurAvatarShared } = await import(
       '../ts/interactions/avatar-interactions/nts-avatar-interactions'
     );
@@ -943,9 +943,7 @@ export class SessionClient extends EventEmitter {
     if (!result) {
       throw new Error('setDisplayImage: failed to upload avatar');
     }
-    const { UserSync } = await import(
-      '../ts/session/utils/job_runners/jobs/UserSyncJob'
-    );
+    const { UserSync } = await import('../ts/session/utils/job_runners/jobs/UserSyncJob');
     await UserSync.pushChangesToUserSwarmIfNeeded();
   }
 
@@ -1040,8 +1038,7 @@ export class SessionClient extends EventEmitter {
     return {
       id: c.id as string,
       type: c.get('type') as string,
-      displayName:
-        c.getRealSessionUsername?.() ?? (c.get('name') as string | undefined),
+      displayName: c.getRealSessionUsername?.() ?? (c.get('name') as string | undefined),
       avatarPath: c.get('avatarPath') as string | undefined,
       unreadCount: (c.get('unreadCount') as number | undefined) ?? 0,
       lastMessage: c.get('lastMessage') as string | undefined,
@@ -1075,7 +1072,7 @@ export class SessionClient extends EventEmitter {
       conversationId: m.get('conversationId') as string,
       source: m.get('source') as string,
       body: m.get('body') as string | undefined,
-      timestamp: ((m.get('sent_at') ?? m.get('received_at') ?? 0) as number),
+      timestamp: (m.get('sent_at') ?? m.get('received_at') ?? 0) as number,
       isOutgoing: m.get('type') === 'outgoing',
       attachments,
       quote: m.get('quote') as AnyValue | undefined,

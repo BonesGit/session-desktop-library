@@ -12,7 +12,7 @@
 const { parentPort } = require('worker_threads');
 
 // Polyfill postMessage() → parentPort.postMessage()
-globalThis.postMessage = (data) => parentPort.postMessage(data);
+globalThis.postMessage = data => parentPort.postMessage(data);
 
 // Polyfill onmessage setter: when the bundle assigns `onmessage = handler`,
 // register that handler on parentPort (wrapping raw data in a {data} envelope
@@ -21,7 +21,7 @@ let _onmessageHandler = null;
 Object.defineProperty(globalThis, 'onmessage', {
   set(fn) {
     _onmessageHandler = fn;
-    parentPort.on('message', (data) => fn({ data }));
+    parentPort.on('message', data => fn({ data }));
   },
   get() {
     return _onmessageHandler;

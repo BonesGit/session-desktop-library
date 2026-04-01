@@ -36,7 +36,9 @@ function assertEqual(actual, expected, message) {
     console.log(`  ✓ ${message}`);
     passed++;
   } else {
-    console.error(`  ✗ ${message} — expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+    console.error(
+      `  ✗ ${message} — expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`
+    );
     failed++;
   }
 }
@@ -79,7 +81,10 @@ async function run() {
     console.log('3. createAccount()');
     const sessionId = await client.createAccount(mnemonic, 'Test Bot');
     assert(typeof sessionId === 'string', 'returns a string');
-    assert(sessionId.startsWith('05'), `session ID starts with 05 (got: ${sessionId.slice(0, 4)}...)`);
+    assert(
+      sessionId.startsWith('05'),
+      `session ID starts with 05 (got: ${sessionId.slice(0, 4)}...)`
+    );
     assertEqual(sessionId.length, 66, `session ID is 66 chars (got ${sessionId.length})`);
     assertEqual(client.isRegistered(), true, 'isRegistered() is true after createAccount()');
     assertEqual(client.getSessionId(), sessionId, 'getSessionId() matches returned ID');
@@ -100,7 +105,6 @@ async function run() {
     assert(Array.isArray(convos), 'returns an array');
     console.log(`   ${convos.length} conversation(s) loaded`);
     console.log();
-
   } finally {
     if (client) {
       console.log('6. shutdown()');
