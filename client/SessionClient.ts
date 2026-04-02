@@ -314,13 +314,43 @@ export class SessionClient extends EventEmitter {
 
   /**
    * Restore an existing Session account from a mnemonic.
-   * Fetches display name from the network.
+   * Fetches display name from the network when available; falls back gracefully
+   * if no UserProfile config exists yet (new account or pre-libsession account).
    * Returns the Session ID.
    */
   async restoreAccount(mnemonic: string): Promise<string> {
     this._assertInitialized();
+
+    // Pre-derive the pubkey from the mnemonic so we have it even if the network
+    // poll inside signInByLinkingDevice throws (createAccount + saveRecoveryPhrase
+    // run before the poll, so the identity is already written to the DB).
+    const { mnDecode } = await import('../ts/session/crypto/mnemonic');
+    const { fromHex, toHex } = await import('../ts/session/utils/String');
+    const { sessionGenerateKeyPair } = await import('../ts/util/accountManager');
+    let seedHex = mnDecode(mnemonic, 'english');
+    const privKeyHexLength = 32 * 2;
+    if (seedHex.length !== privKeyHexLength) {
+      seedHex = seedHex.concat('0'.repeat(32)).substring(0, privKeyHexLength);
+    }
+    const identityKeyPair = await sessionGenerateKeyPair(fromHex(seedHex));
+    const pubKeyString = toHex(identityKeyPair.pubKey);
+
     const { signInByLinkingDevice } = await import('../ts/util/accountManager');
-    const { pubKeyString } = await signInByLinkingDevice(mnemonic, 'english');
+    try {
+      await signInByLinkingDevice(mnemonic, 'english');
+    } catch (e: AnyValue) {
+      // NotFoundError means the UserProfile namespace on the network was empty
+      // (account has no config messages yet, or pre-libsession account).
+      // createAccount() + saveRecoveryPhrase() already ran before the poll threw,
+      // so the identity is in the DB — safe to continue.
+      if (e?.name !== 'NotFoundError') {
+        throw e;
+      }
+      window?.log?.warn(
+        '[session-lib] restoreAccount: no UserProfile config on network, continuing without fetched display name:',
+        e.message
+      );
+    }
 
     // signInByLinkingDevice deliberately defers registration completion
     // (it expects the configurationMessageReceived event to fire registrationDone()).
