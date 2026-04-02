@@ -1,6 +1,6 @@
 {
   "name": "@bonesgit/session-desktop-library",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Headless Node.js API for the Session decentralized private messaging protocol",
   "license": "GPL-3.0",
   "engines": {
