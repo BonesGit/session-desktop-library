@@ -3,15 +3,16 @@
  *
  * Initialization order:
  *  1. installWindowShim()          — global.window must exist before any backend import
- *  2. sqlNode.initializeSql()      — open / create the encrypted SQLite database
- *  3. initData()                   — bind channels → sqlNode (no IPC)
- *  4. Storage.fetch()              — load key-value settings from DB
- *  5. initializeAttachmentLogic()  — set up attachment directories
- *  6. LibSessionUtil.initializeLibSessionUtilWrappers() — native crypto
- *  7. BlockedNumberController.load()
- *  8. ConvoHub.use().load()        — load all conversations from DB
- *  9. SwarmPolling                 — start polling for new messages
- * 10. DisappearingMessages         — schedule expiry timers
+ *  2. Stub electron-only modules   — pre-populate require cache (e.g. ts/node/logs)
+ *  3. sqlNode.initializeSql()      — open / create the encrypted SQLite database
+ *  4. initData()                   — bind channels → sqlNode (no IPC)
+ *  5. Storage.fetch()              — load key-value settings from DB
+ *  6. initializeAttachmentLogic()  — set up attachment directories
+ *  7. LibSessionUtil.initializeLibSessionUtilWrappers() — native crypto
+ *  8. BlockedNumberController.load()
+ *  9. ConvoHub.use().load()        — load all conversations from DB
+ * 10. SwarmPolling                 — start polling for new messages
+ * 11. DisappearingMessages         — schedule expiry timers
  */
 
 import { EventEmitter, on as eventsOn } from 'events';
@@ -68,7 +69,21 @@ export class SessionClient extends EventEmitter {
       this.emit('conversation:updated', convo)
     );
 
-    // Step 2: Initialize SQLCipher database
+    // Step 2: Stub Electron-only modules that are transitively imported by accountManager.
+    // ts/node/logs.ts uses ipcRenderer to delete log files — meaningless in headless Node.
+    // Pre-populating the module cache here prevents the require('electron') crash when
+    // createAccount() / restoreAccount() dynamically import accountManager.
+    const logsPath = require.resolve('../ts/node/logs');
+    if (!require.cache[logsPath]) {
+      require.cache[logsPath] = {
+        id: logsPath,
+        filename: logsPath,
+        loaded: true,
+        exports: { deleteAllLogs: () => Promise.resolve() },
+      } as NodeModule;
+    }
+
+    // Step 3: Initialize SQLCipher database
     const { sqlNode } = await import('../ts/node/sql');
     await sqlNode.initializeSql({
       configDir: this._config.dataPath,
@@ -76,19 +91,19 @@ export class SessionClient extends EventEmitter {
       passwordAttempt: false,
     });
 
-    // Step 3: Bind channels → sqlNode (no Electron IPC)
+    // Step 4: Bind channels → sqlNode (no Electron IPC)
     const { initData } = await import('./lib/dataInit_node');
     initData();
 
-    // Step 4: Load key-value settings from DB
+    // Step 5: Load key-value settings from DB
     const { Storage } = await import('../ts/util/storage');
     await Storage.fetch();
 
-    // Step 5: Initialize attachment file paths
+    // Step 6: Initialize attachment file paths
     const { initializeAttachmentLogic } = await import('../ts/types/MessageAttachment');
     await initializeAttachmentLogic(this._config.dataPath);
 
-    // Step 5b: Generate the local attachment encryption key if this is a fresh install.
+    // Step 6b: Generate the local attachment encryption key if this is a fresh install.
     // Without this, processNewAttachment() throws "needs a key set in local_attachment_encrypted_key".
     const { Data: DataForKey } = await import('../ts/data/data');
     await DataForKey.generateAttachmentKeyIfEmpty();
@@ -105,7 +120,7 @@ export class SessionClient extends EventEmitter {
       // No account yet — session ID will be set after createAccount/restoreAccount
     }
 
-    // Step 6: Initialize libsession native crypto wrappers — only when an account exists.
+    // Step 7: Initialize libsession native crypto wrappers — only when an account exists.
     // initializeLibSessionUtilWrappers() reads the user keypair from the DB; calling it
     // on a fresh install (no keypair yet) throws "user has no keypair".
     // createAccount() / restoreAccount() will call _initLibSession() after registration.
@@ -113,7 +128,7 @@ export class SessionClient extends EventEmitter {
       await this._initLibSession();
     }
 
-    // Step 7: Load blocked numbers
+    // Step 8: Load blocked numbers
     const { BlockedNumberController } = await import('../ts/util/blockedNumberController');
     await BlockedNumberController.load();
 
