@@ -1,17 +1,12 @@
 # Session Desktop & Library
 
-## Slop Fork!!
+## Library Fork
 
 This is a fork of Session Desktop with an added build to produce a library to run the desktop headless. For use by the claws of the world. Used AI to help separate frontend from backend with minimal changes to the core desktop app portion. Most UI and app logic is already nicely decoupled but hit a few snags that took more changes to desktop app then I liked.
 
 https://github.com/BonesGit/session-desktop-library  
 npm package: @bonesgit/session-desktop-library
 
-### Release Notes
-- **v0.1.8** - added send reation emojis. Updated docs
-- **v0.1.7** - added group promotion to admin
-- **v0.1.6** - fixed quoted replies
-- **v0.1.5** - first build that works without pulling in all the UI dependencies.
 
 ### TODO
 - Still to many changes to the core desktop app code. To much coupling between frontend and backend code that needed tweaking to just get something working. Needs better architecture so I can touch less desktop app code.
