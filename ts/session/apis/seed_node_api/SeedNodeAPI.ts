@@ -204,10 +204,12 @@ export function getMinTimeout() {
 
 async function loadSnodePoolFromAsset(): Promise<SnodesFromSeed> {
   if (!isElectronRenderer) {
-    // Library mode: read the bundled service-nodes-cache.json directly from disk
-    try {
-      // Walk up from this compiled file's location to find the asset
-      const assetPath = path.join(
+    // Library mode: try two candidate paths for service-nodes-cache.json:
+    //   1. dist-lib/dynamic_assets/ (4 levels up from SeedNodeAPI.js → dist-lib/)
+    //   2. project root dynamic_assets/ (5 levels up, works in dev mode)
+    const candidatePaths = [
+      path.join(__dirname, '..', '..', '..', '..', 'dynamic_assets', 'service-nodes-cache.json'),
+      path.join(
         __dirname,
         '..',
         '..',
@@ -216,32 +218,48 @@ async function loadSnodePoolFromAsset(): Promise<SnodesFromSeed> {
         '..',
         'dynamic_assets',
         'service-nodes-cache.json'
-      );
-      const content = fs.readFileSync(assetPath, 'utf8');
-      const fileCreatedMs = fs.statSync(assetPath).mtimeMs;
-      const json = JSON.parse(content);
-      const parseResult = zodSafeParse(ServiceNodesWithHeightSchema, json);
-      if (parseResult.error) {
-        throw new Error(`Failed to parse build time snode pool data: ${parseResult.error}`);
-      }
-      const nowMs = NetworkTime.now();
-      const heightAtBuildTime = parseResult.data.height;
-      const secondsSinceBuildTime = Math.floor((nowMs - fileCreatedMs) / 1000);
-      const expectedHeightDiffSinceBuildTime = Math.floor(secondsSinceBuildTime / 120);
-      const expectedCurrentHeight = heightAtBuildTime + expectedHeightDiffSinceBuildTime;
-      return parseResult.data.service_node_states.filter(snode => {
-        if (!snode.requested_unlock_height) {
-          return true;
+      ),
+    ];
+    for (const assetPath of candidatePaths) {
+      try {
+        if (!fs.existsSync(assetPath)) {
+          continue;
         }
-        return snode.requested_unlock_height > expectedCurrentHeight;
-      });
-    } catch (e) {
-      window?.log?.warn(
-        '[SeedNodeAPI] Failed to load built-in snode pool asset in library mode:',
-        e
-      );
-      return [];
+        const content = fs.readFileSync(assetPath, 'utf8');
+        const fileCreatedMs = fs.statSync(assetPath).mtimeMs;
+        const json = JSON.parse(content);
+        const parseResult = zodSafeParse(ServiceNodesWithHeightSchema, json);
+        if (parseResult.error) {
+          window?.log?.warn(
+            `[SeedNodeAPI] Failed to parse snode pool asset at ${assetPath}:`,
+            parseResult.error
+          );
+          continue;
+        }
+        const nowMs = NetworkTime.now();
+        const heightAtBuildTime = parseResult.data.height;
+        const secondsSinceBuildTime = Math.floor((nowMs - fileCreatedMs) / 1000);
+        const expectedHeightDiffSinceBuildTime = Math.floor(secondsSinceBuildTime / 120);
+        const expectedCurrentHeight = heightAtBuildTime + expectedHeightDiffSinceBuildTime;
+        const snodes = parseResult.data.service_node_states.filter(snode => {
+          if (!snode.requested_unlock_height) {
+            return true;
+          }
+          return snode.requested_unlock_height > expectedCurrentHeight;
+        });
+        if (snodes.length > 0) {
+          window?.log?.info(`[SeedNodeAPI] Loaded ${snodes.length} snodes from asset: ${assetPath}`);
+          return snodes;
+        }
+      } catch (e) {
+        window?.log?.warn(
+          { err: e },
+          `[SeedNodeAPI] Failed to load snode pool asset from ${assetPath}`
+        );
+      }
     }
+    window?.log?.warn('[SeedNodeAPI] Failed to load built-in snode pool asset in library mode (tried all candidate paths)');
+    return [];
   }
 
   // Electron renderer mode: use IPC to request the asset from the main process
