@@ -1,6 +1,6 @@
 {
   "name": "@bonesgit/session-desktop-library",
-  "version": "0.1.14",
+  "version": "0.1.16",
   "description": "Headless Node.js API for the Session decentralized private messaging protocol",
   "license": "GPL-3.0",
   "engines": {
@@ -40,14 +40,17 @@
     "p-retry": "^4.6.2",
     "p-timeout": "4.1.0",
     "pino": "^9.6.0",
-    "protobufjs": "^7.4.0",
+    "protobufjs": "^7.5.5",
     "punycode": "^2.3.1",
     "redux": "5.0.1",
     "redux-promise-middleware": "6.2.0",
     "reselect": "5.1.1",
     "semver": "^7.7.1",
     "sharp": "https://github.com/session-foundation/sharp/releases/download/v0.34.5/sharp-0.34.5.tgz",
-    "uuid": "11.1.0",
+    "uuid": "^14.0.0",
     "zod": "4.1.13"
+  },
+  "resolutions": {
+    "cmake-js": "8.0.0"
   }
 }
